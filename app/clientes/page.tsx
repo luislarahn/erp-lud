@@ -65,7 +65,7 @@ export default function ClientesPage() {
       boxShadow: activa
         ? '0 8px 18px rgba(15,118,110,0.18)'
         : '0 2px 6px rgba(0,0,0,0.03)',
-      fontSize: '14px',
+      fontSize: '13px',
     }
   }
 
@@ -96,28 +96,23 @@ export default function ClientesPage() {
             gap: '20px',
           }}
         >
-          <div>
-            <h1
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <img
+              src="/logo-lud.png"
+              alt="ERP LUD"
               style={{
-                margin: 0,
-                fontSize: '28px',
-                fontWeight: 'bold',
-                color: '#0F172A',
-                lineHeight: 1.1,
+                width: '150px',
+                maxWidth: '100%',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'contain',
               }}
-            >
-              Ferretería PROIS
-            </h1>
-            <p
-              style={{
-                margin: '6px 0 0 0',
-                fontSize: '14px',
-                color: '#6B7280',
-                fontStyle: 'italic',
-              }}
-            >
-              “Todo para construir con confianza.”
-            </p>
+            />
           </div>
 
           <div
@@ -136,7 +131,7 @@ export default function ClientesPage() {
                 color: '#111827',
                 cursor: 'pointer',
                 fontWeight: 'bold',
-                fontSize: '14px',
+                fontSize: '13px',
                 boxShadow: '0 8px 18px rgba(0,0,0,0.05)',
                 display: 'flex',
                 alignItems: 'center',
@@ -153,14 +148,14 @@ export default function ClientesPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   fontWeight: 'bold',
                 }}
               >
                 A
               </span>
               Admin
-              <span style={{ fontSize: '12px', color: '#6B7280' }}>▼</span>
+              <span style={{ fontSize: '11px', color: '#6B7280' }}>▼</span>
             </button>
 
             {menuAbierto && (
@@ -169,7 +164,7 @@ export default function ClientesPage() {
                   position: 'absolute',
                   top: '58px',
                   right: 0,
-                  width: '220px',
+                  width: '150px',
                   backgroundColor: '#FFFFFF',
                   border: '1px solid #E5E7EB',
                   borderRadius: '16px',
@@ -189,14 +184,14 @@ export default function ClientesPage() {
                     style={{
                       fontWeight: 'bold',
                       color: '#111827',
-                      fontSize: '14px',
+                      fontSize: '13px',
                     }}
                   >
                     Admin
                   </div>
                   <div
                     style={{
-                      fontSize: '12px',
+                      fontSize: '11px',
                       color: '#6B7280',
                       marginTop: '4px',
                     }}
@@ -212,7 +207,7 @@ export default function ClientesPage() {
                     padding: '13px 16px',
                     textDecoration: 'none',
                     color: '#374151',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     borderBottom: '1px solid #F3F4F6',
                   }}
                   onClick={() => setMenuAbierto(false)}
@@ -227,7 +222,7 @@ export default function ClientesPage() {
                     padding: '13px 16px',
                     textDecoration: 'none',
                     color: '#374151',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     borderBottom: '1px solid #F3F4F6',
                   }}
                   onClick={() => setMenuAbierto(false)}
@@ -242,7 +237,7 @@ export default function ClientesPage() {
                     padding: '13px 16px',
                     textDecoration: 'none',
                     color: '#374151',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     borderBottom: '1px solid #F3F4F6',
                   }}
                   onClick={() => setMenuAbierto(false)}
@@ -260,7 +255,7 @@ export default function ClientesPage() {
                     border: 'none',
                     cursor: 'pointer',
                     color: '#B91C1C',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     fontWeight: 'bold',
                   }}
                 >

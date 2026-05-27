@@ -35,6 +35,24 @@ const modulos = [
     icono: '⚙️',
     descripcion: 'Configuración general del sistema',
   },
+  {
+    nombre: 'Contabilidad',
+    ruta: '/contabilidad',
+    icono: '📊',
+    descripcion: 'Relación financiera y estados',
+  },
+  {
+    nombre: 'CRM',
+    ruta: '/crm',
+    icono: '📈',
+    descripcion: 'Gestión de clientes y ventas',
+  },
+  {
+    nombre: 'Suscripciones',
+    ruta: '/suscripciones',
+    icono: '🔄',
+    descripcion: 'Planes, pagos y renovaciones',
+  },
 ]
 
 export default function DashboardPage() {
@@ -71,7 +89,7 @@ export default function DashboardPage() {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#EAECEF',
         fontFamily: 'Arial, sans-serif',
         color: '#1F2937',
       }}
@@ -95,27 +113,16 @@ export default function DashboardPage() {
           }}
         >
           <div>
-            <h1
+            <img
+              src="/logo-lud.png"
+              alt="ERP LUD"
               style={{
-                margin: 0,
-                fontSize: '28px',
-                fontWeight: 'bold',
-                color: '#0F172A',
-                lineHeight: 1.1,
+                width: '126px',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'contain',
               }}
-            >
-              Ferretería PROIS
-            </h1>
-            <p
-              style={{
-                margin: '6px 0 0 0',
-                fontSize: '14px',
-                color: '#6B7280',
-                fontStyle: 'italic',
-              }}
-            >
-              “Todo para construir con confianza.”
-            </p>
+            />
           </div>
 
           <div
@@ -134,7 +141,7 @@ export default function DashboardPage() {
                 color: '#111827',
                 cursor: 'pointer',
                 fontWeight: 'bold',
-                fontSize: '14px',
+                fontSize: '13px',
                 boxShadow: '0 8px 18px rgba(0,0,0,0.05)',
                 display: 'flex',
                 alignItems: 'center',
@@ -151,14 +158,14 @@ export default function DashboardPage() {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   fontWeight: 'bold',
                 }}
               >
                 A
               </span>
               Admin
-              <span style={{ fontSize: '12px', color: '#6B7280' }}>▼</span>
+              <span style={{ fontSize: '11px', color: '#6B7280' }}>▼</span>
             </button>
 
             {menuAbierto && (
@@ -187,14 +194,14 @@ export default function DashboardPage() {
                     style={{
                       fontWeight: 'bold',
                       color: '#111827',
-                      fontSize: '14px',
+                      fontSize: '13px',
                     }}
                   >
                     Admin
                   </div>
                   <div
                     style={{
-                      fontSize: '12px',
+                      fontSize: '11px',
                       color: '#6B7280',
                       marginTop: '4px',
                     }}
@@ -210,7 +217,7 @@ export default function DashboardPage() {
                     padding: '13px 16px',
                     textDecoration: 'none',
                     color: '#374151',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     borderBottom: '1px solid #F3F4F6',
                   }}
                   onClick={() => setMenuAbierto(false)}
@@ -225,7 +232,7 @@ export default function DashboardPage() {
                     padding: '13px 16px',
                     textDecoration: 'none',
                     color: '#374151',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     borderBottom: '1px solid #F3F4F6',
                   }}
                   onClick={() => setMenuAbierto(false)}
@@ -240,7 +247,7 @@ export default function DashboardPage() {
                     padding: '13px 16px',
                     textDecoration: 'none',
                     color: '#374151',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     borderBottom: '1px solid #F3F4F6',
                   }}
                   onClick={() => setMenuAbierto(false)}
@@ -258,7 +265,7 @@ export default function DashboardPage() {
                     border: 'none',
                     cursor: 'pointer',
                     color: '#B91C1C',
-                    fontSize: '14px',
+                    fontSize: '13px',
                     fontWeight: 'bold',
                   }}
                 >
@@ -279,40 +286,6 @@ export default function DashboardPage() {
       >
         <div
           style={{
-            backgroundColor: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '24px',
-            padding: '34px 30px',
-            boxShadow: '0 10px 24px rgba(0,0,0,0.05)',
-            marginBottom: '28px',
-            textAlign: 'center',
-          }}
-        >
-          <h2
-            style={{
-              margin: 0,
-              fontSize: '30px',
-              color: '#111827',
-            }}
-          >
-            Bienvenido
-          </h2>
-
-          <p
-            style={{
-              marginTop: '12px',
-              marginBottom: 0,
-              color: '#6B7280',
-              fontSize: '15px',
-              lineHeight: 1.6,
-            }}
-          >
-           
-          </p>
-        </div>
-
-        <div
-          style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 220px))',
             gap: '18px',
@@ -330,11 +303,11 @@ export default function DashboardPage() {
               <div
                 style={{
                   backgroundColor: '#FFFFFF',
-                  border: '1px solid #E5E7EB',
+                  border: '1px solid #D9DEE5',
                   borderRadius: '20px',
                   padding: '18px',
                   minHeight: '130px',
-                  boxShadow: '0 8px 20px rgba(0,0,0,0.04)',
+                  boxShadow: '0 10px 28px rgba(15,23,42,0.08)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -351,7 +324,7 @@ export default function DashboardPage() {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontSize: '22px',
+                    fontSize: '21px',
                   }}
                 >
                   {modulo.icono}
@@ -361,7 +334,7 @@ export default function DashboardPage() {
                   <h3
                     style={{
                       margin: '14px 0 6px 0',
-                      fontSize: '16px',
+                      fontSize: '15px',
                       color: '#111827',
                     }}
                   >
@@ -372,7 +345,7 @@ export default function DashboardPage() {
                     style={{
                       margin: 0,
                       color: '#6B7280',
-                      fontSize: '12px',
+                      fontSize: '11px',
                       lineHeight: 1.4,
                     }}
                   >
