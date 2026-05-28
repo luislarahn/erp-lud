@@ -10,13 +10,31 @@ type PestanaActiva = 'registros' | 'operaciones' | 'reportes'
 type VistaProductos = 'kanban' | 'lista'
 type TipoReporteInventario = 'productos' | 'movimientos'
 
+
+const unidadesMedidaSugeridas = [
+  'Unidad','Bolsa','Caja','Metro','Metro Lineal','Metro Cuadrado',
+  'Metro Cúbico','Galón','Litro','Kilogramo','Libra','Quintal',
+  'Tonelada','Pieza','Paquete','Rollo','Cubeta','Barril',
+  'Docena','Juego','Par',
+]
+
+function capitalizarInicial(texto: string) {
+  return texto
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase('es-HN')
+    .replace(/(^|\s)(\p{L})/gu, (_, espacio, letra) => {
+      return `${espacio}${letra.toLocaleUpperCase('es-HN')}`
+    })
+}
+
 export default function InventarioPage() {
   const router = useRouter()
   const [menuAbierto, setMenuAbierto] = useState(false)
   const menuRef = useRef<HTMLDivElement | null>(null)
 
   const [pestanaActiva, setPestanaActiva] = useState<PestanaActiva>('registros')
-  const [vistaProductos, setVistaProductos] = useState<VistaProductos>('kanban')
+  const [vistaProductos, setVistaProductos] = useState<VistaProductos>('lista')
 
   const [productos, setProductos] = useState<any[]>([])
   const [movimientos, setMovimientos] = useState<any[]>([])
@@ -25,6 +43,7 @@ export default function InventarioPage() {
   const [unidadesExistentes, setUnidadesExistentes] = useState<string[]>([])
 
   const [descripcion, setDescripcion] = useState('')
+  const [codigo, setCodigo] = useState('')
   const [categoria, setCategoria] = useState('')
   const [unidadMedida, setUnidadMedida] = useState('')
   const [precioCompra, setPrecioCompra] = useState('')
@@ -38,6 +57,7 @@ export default function InventarioPage() {
   const [busquedaProducto, setBusquedaProducto] = useState('')
   const [menuAccionAbierto, setMenuAccionAbierto] = useState<number | null>(null)
 
+  const [codigoOperacion, setCodigoOperacion] = useState('')
   const [descripcionOperacion, setDescripcionOperacion] = useState('')
   const [tipoOperacion, setTipoOperacion] = useState('Entrada')
   const [cantidadOperacion, setCantidadOperacion] = useState('')
@@ -53,6 +73,27 @@ export default function InventarioPage() {
   const [filtroFechaHasta, setFiltroFechaHasta] = useState('')
   const [filtroCategoriaMovimiento, setFiltroCategoriaMovimiento] = useState('Todas')
   const [filtroTipoMovimiento, setFiltroTipoMovimiento] = useState('Todos')
+
+  const unidadesMedidaCompletas = useMemo(() => {
+    const unidadesNormalizadas = [
+      ...unidadesMedidaSugeridas,
+      ...unidadesExistentes,
+    ]
+      .map((unidad) => capitalizarInicial(unidad))
+      .filter((unidad) => unidad.trim() !== '')
+
+    return [...new Set(unidadesNormalizadas)].sort((a, b) => a.localeCompare(b, 'es'))
+  }, [unidadesExistentes])
+
+  const codigosExistentes = useMemo(() => {
+    return [
+      ...new Set(
+        productos
+          .map((producto) => String(producto.codigo || '').trim())
+          .filter((codigoProducto) => codigoProducto !== '')
+      ),
+    ].sort((a, b) => a.localeCompare(b, 'es'))
+  }, [productos])
 
   useEffect(() => {
     const auth = localStorage.getItem('miniERPAuth')
@@ -150,8 +191,9 @@ export default function InventarioPage() {
     e.preventDefault()
 
     const descripcionLimpia = descripcion.trim()
+    const codigoLimpio = codigo.trim()
     const categoriaLimpia = categoria.trim()
-    const unidadMedidaLimpia = unidadMedida.trim()
+    const unidadMedidaLimpia = capitalizarInicial(unidadMedida)
     const impuestoValor = tipoImpuesto === 'Exento' ? 0 : 15
     const stockMinimoValor = Number(stockMinimo || 10)
 
@@ -159,6 +201,7 @@ export default function InventarioPage() {
       const { error } = await supabase
         .from('productos')
         .update({
+          codigo: codigoLimpio || null,
           descripcion: descripcionLimpia,
           categoria: categoriaLimpia,
           unidad_medida: unidadMedidaLimpia,
@@ -199,6 +242,7 @@ export default function InventarioPage() {
       const { error } = await supabase
         .from('productos')
         .update({
+          codigo: codigoLimpio || null,
           categoria: categoriaLimpia,
           unidad_medida: unidadMedidaLimpia,
           precio_compra: Number(precioCompra),
@@ -221,6 +265,7 @@ export default function InventarioPage() {
     } else {
       const { error } = await supabase.from('productos').insert([
         {
+          codigo: codigoLimpio || null,
           descripcion: descripcionLimpia,
           categoria: categoriaLimpia,
           unidad_medida: unidadMedidaLimpia,
@@ -247,11 +292,12 @@ export default function InventarioPage() {
   async function guardarOperacionStock(e: React.FormEvent) {
     e.preventDefault()
 
+    const codigoLimpio = codigoOperacion.trim()
     const descripcionLimpia = descripcionOperacion.trim()
     const cantidad = Number(cantidadOperacion)
 
-    if (!descripcionLimpia) {
-      alert('Debe seleccionar o escribir una descripción')
+    if (!codigoLimpio && !descripcionLimpia) {
+      alert('Debe ingresar un código o seleccionar una descripción')
       return
     }
 
@@ -260,14 +306,23 @@ export default function InventarioPage() {
       return
     }
 
-    const productoExistente = productos.find(
-      (p) =>
-        p.descripcion?.trim().toLowerCase() ===
-        descripcionLimpia.toLowerCase()
-    )
+    const productoExistente = productos.find((p) => {
+      const codigoProducto = String(p.codigo || '').trim().toLowerCase()
+      const descripcionProducto = String(p.descripcion || '').trim().toLowerCase()
+
+      if (codigoLimpio && codigoProducto === codigoLimpio.toLowerCase()) {
+        return true
+      }
+
+      if (!codigoLimpio && descripcionLimpia && descripcionProducto === descripcionLimpia.toLowerCase()) {
+        return true
+      }
+
+      return false
+    })
 
     if (!productoExistente) {
-      alert('La descripción ingresada no existe en el inventario')
+      alert('El producto ingresado no existe en el inventario')
       return
     }
 
@@ -325,9 +380,34 @@ export default function InventarioPage() {
     obtenerMovimientos()
   }
 
+  function manejarCambioCodigoOperacion(valor: string) {
+    setCodigoOperacion(valor)
+
+    const productoCoincidente = productos.find(
+      (p) => String(p.codigo || '').trim().toLowerCase() === valor.trim().toLowerCase()
+    )
+
+    if (productoCoincidente) {
+      setDescripcionOperacion(productoCoincidente.descripcion || '')
+    }
+  }
+
+  function manejarCambioDescripcionOperacion(valor: string) {
+    setDescripcionOperacion(valor)
+
+    const productoCoincidente = productos.find(
+      (p) => String(p.descripcion || '').trim().toLowerCase() === valor.trim().toLowerCase()
+    )
+
+    if (productoCoincidente) {
+      setCodigoOperacion(productoCoincidente.codigo || '')
+    }
+  }
+
   function limpiarFormulario() {
     const hoy = new Date().toISOString().split('T')[0]
     setDescripcion('')
+    setCodigo('')
     setCategoria('')
     setUnidadMedida('')
     setPrecioCompra('')
@@ -341,6 +421,7 @@ export default function InventarioPage() {
 
   function limpiarFormularioOperacion() {
     const hoy = new Date().toISOString().split('T')[0]
+    setCodigoOperacion('')
     setDescripcionOperacion('')
     setTipoOperacion('Entrada')
     setCantidadOperacion('')
@@ -350,6 +431,7 @@ export default function InventarioPage() {
   function editarProducto(producto: any) {
     setIdProductoEditando(producto.id_producto)
     setDescripcion(producto.descripcion || '')
+    setCodigo(producto.codigo || '')
     setCategoria(producto.categoria || '')
     setUnidadMedida(producto.unidad_medida || '')
     setPrecioCompra(String(producto.precio_compra ?? ''))
@@ -412,6 +494,11 @@ export default function InventarioPage() {
     return productoRelacionado?.categoria || '-'
   }
 
+  function obtenerCodigoMovimiento(movimiento: any) {
+    const productoRelacionado = obtenerProductoPorMovimiento(movimiento)
+    return productoRelacionado?.codigo || '-'
+  }
+
   function obtenerTipoMovimientoBase(movimiento: any) {
     const tipo = movimiento.tipo_operacion || ''
 
@@ -437,6 +524,7 @@ export default function InventarioPage() {
 
     return productos.filter((p) => {
       return (
+        p.codigo?.toLowerCase().includes(texto) ||
         p.descripcion?.toLowerCase().includes(texto) ||
         p.categoria?.toLowerCase().includes(texto) ||
         p.unidad_medida?.toLowerCase().includes(texto)
@@ -506,8 +594,32 @@ export default function InventarioPage() {
     return Number(impuesto) === 0 ? 'Exento (0%)' : 'ISV (15%)'
   }
 
+  function formatearMoneda(valor: any) {
+    const numero = Number(valor || 0)
+
+    return `L ${numero.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`
+  }
+
+  function formatearFecha(fecha: string | null | undefined) {
+    if (!fecha) return 'Sin fecha'
+
+    const partes = fecha.split('-')
+    if (partes.length !== 3) return fecha
+
+    return `${partes[2].padStart(2, '0')}/${partes[1].padStart(2, '0')}/${partes[0]}`
+  }
+
   function formatearFechaGeneracion() {
-    return new Date().toLocaleString('es-HN')
+    return new Date().toLocaleString('es-HN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
   function escaparHtml(valor: any) {
@@ -521,6 +633,7 @@ export default function InventarioPage() {
 
   function exportarProductosExcel() {
     const datos = productosFiltradosReporte.map((p) => ({
+      Código: p.codigo || '',
       Descripción: p.descripcion || '',
       Categoría: p.categoria || '',
       Unidad: p.unidad_medida || '',
@@ -529,7 +642,7 @@ export default function InventarioPage() {
       'Stock actual': Number(p.stock_actual || 0),
       'Stock mínimo': Number(p.stock_minimo ?? 10),
       Impuesto: formatearImpuesto(p.impuesto),
-      'Fecha registro': p.fecha_registro || '',
+      'Fecha registro': formatearFecha(p.fecha_registro),
       Alerta: productoTieneStockBajo(p) ? 'Stock bajo' : '',
     }))
 
@@ -542,7 +655,8 @@ export default function InventarioPage() {
 
   function exportarMovimientosExcel() {
     const datos = movimientosFiltradosReporte.map((m) => ({
-      Fecha: m.fecha_registro || '',
+      Fecha: formatearFecha(m.fecha_registro),
+      Código: obtenerCodigoMovimiento(m),
       Producto: m.descripcion || '',
       Categoría: obtenerCategoriaMovimiento(m),
       Tipo: m.tipo_operacion || '',
@@ -625,7 +739,7 @@ export default function InventarioPage() {
             }
 
             th {
-              background: #F3F4F6;
+              background: #EAECEF;
               color: #111827;
               text-align: left;
               padding: 8px;
@@ -661,7 +775,7 @@ export default function InventarioPage() {
         </head>
         <body>
           <div class="encabezado">
-            <h1>Ferretería PROIS</h1>
+            <h1>ERP LUD</h1>
             <h2>${escaparHtml(titulo)}</h2>
             <div class="meta">
               Fecha de generación: ${escaparHtml(formatearFechaGeneracion())}<br />
@@ -679,7 +793,7 @@ export default function InventarioPage() {
           </table>
 
           <div class="pie">
-            Reporte generado desde el Mini ERP Ferretería.
+            Reporte generado desde ERP LUD.
           </div>
 
           <script>
@@ -696,6 +810,7 @@ export default function InventarioPage() {
 
   function imprimirProductosPdf() {
     const encabezados = [
+      'Código',
       'Descripción',
       'Categoría',
       'Unidad',
@@ -709,15 +824,16 @@ export default function InventarioPage() {
     ]
 
     const filas = productosFiltradosReporte.map((p) => [
+      p.codigo || '',
       p.descripcion || '',
       p.categoria || '',
       p.unidad_medida || '',
-      `L ${p.precio_compra ?? 0}`,
-      `L ${p.precio_venta ?? 0}`,
+      formatearMoneda(p.precio_compra),
+      formatearMoneda(p.precio_venta),
       p.stock_actual ?? 0,
       p.stock_minimo ?? 10,
       formatearImpuesto(p.impuesto),
-      p.fecha_registro || '',
+      formatearFecha(p.fecha_registro),
       productoTieneStockBajo(p) ? 'Stock bajo' : '',
     ])
 
@@ -732,6 +848,7 @@ export default function InventarioPage() {
   function imprimirMovimientosPdf() {
     const encabezados = [
       'Fecha',
+      'Código',
       'Producto',
       'Categoría',
       'Tipo',
@@ -741,7 +858,8 @@ export default function InventarioPage() {
     ]
 
     const filas = movimientosFiltradosReporte.map((m) => [
-      m.fecha_registro || '',
+      formatearFecha(m.fecha_registro),
+      obtenerCodigoMovimiento(m),
       m.descripcion || '',
       obtenerCategoriaMovimiento(m),
       m.tipo_operacion || '',
@@ -772,6 +890,7 @@ export default function InventarioPage() {
       boxShadow: activa
         ? '0 8px 18px rgba(15,118,110,0.18)'
         : '0 2px 6px rgba(0,0,0,0.03)',
+      fontSize: '13px',
     }
   }
 
@@ -784,9 +903,34 @@ export default function InventarioPage() {
       border: `1px solid ${activa ? '#0F766E' : '#E5E7EB'}`,
       borderRadius: '10px',
       fontWeight: 'bold' as const,
-      fontSize: '13px',
+      fontSize: '12px',
       marginLeft: '8px',
     }
+  }
+
+  const estiloBotonFormularioPrimario = {
+    padding: '10px 14px',
+    cursor: 'pointer',
+    backgroundColor: '#0F766E',
+    color: '#FFFFFF',
+    border: '1px solid #0F766E',
+    borderRadius: '10px',
+    fontWeight: 'bold' as const,
+    fontSize: '12px',
+    lineHeight: 1.2,
+    boxShadow: '0 6px 14px rgba(15,118,110,0.14)',
+  }
+
+  const estiloBotonFormularioSecundario = {
+    padding: '10px 14px',
+    cursor: 'pointer',
+    backgroundColor: '#FFFFFF',
+    color: '#374151',
+    border: '1px solid #D1D5DB',
+    borderRadius: '10px',
+    fontWeight: 'bold' as const,
+    fontSize: '12px',
+    lineHeight: 1.2,
   }
 
   const estiloInput = {
@@ -797,7 +941,7 @@ export default function InventarioPage() {
     border: '1px solid #D1D5DB',
     borderRadius: '12px',
     outline: 'none',
-    fontSize: '14px',
+    fontSize: '13px',
     boxSizing: 'border-box' as const,
   }
 
@@ -806,7 +950,53 @@ export default function InventarioPage() {
     marginBottom: '6px',
     color: '#374151',
     fontWeight: 600,
-    fontSize: '14px',
+    fontSize: '13px',
+  }
+
+  const estiloFormularioCompacto = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+    gap: '12px 18px',
+    alignItems: 'center',
+  }
+
+  const estiloCampoLinea = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    minWidth: 0,
+  }
+
+  const estiloLabelLinea = {
+    margin: 0,
+    color: '#374151',
+    fontWeight: 600,
+    fontSize: '13px',
+    minWidth: '112px',
+    whiteSpace: 'nowrap' as const,
+  }
+
+  const estiloInputCompacto = {
+    width: '100%',
+    maxWidth: '210px',
+    padding: '9px 11px',
+    backgroundColor: '#FFFFFF',
+    color: '#111827',
+    border: '1px solid #D1D5DB',
+    borderRadius: '10px',
+    outline: 'none',
+    fontSize: '13px',
+    boxSizing: 'border-box' as const,
+  }
+
+  const estiloInputPequeno = {
+    ...estiloInputCompacto,
+    maxWidth: '105px',
+  }
+
+  const estiloInputFecha = {
+    ...estiloInputCompacto,
+    maxWidth: '145px',
   }
 
   const estiloCaja = {
@@ -819,34 +1009,48 @@ export default function InventarioPage() {
 
   const estiloTablaContenedor = {
     overflowX: 'auto' as const,
-    border: '1px solid #E5E7EB',
+    border: '1px solid #D9DEE5',
     borderRadius: '16px',
     backgroundColor: '#FFFFFF',
   }
 
   const estiloTh = {
-    padding: '14px',
+    padding: '13px 14px',
     textAlign: 'left' as const,
     color: '#374151',
-    borderBottom: '1px solid #E5E7EB',
+    backgroundColor: '#F8FAFC',
+    borderBottom: '1px solid #D9DEE5',
+    fontSize: '12px',
+    fontWeight: 700,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.03em',
+    whiteSpace: 'nowrap' as const,
   }
 
   const estiloTd = {
-    padding: '14px',
-    borderBottom: '1px solid #F3F4F6',
+    padding: '13px 14px',
+    borderBottom: '1px solid #EEF2F7',
+    fontSize: '13px',
+    color: '#374151',
+    verticalAlign: 'middle' as const,
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#F3F4F6', fontFamily: 'Arial, sans-serif', color: '#1F2937' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#EAECEF', fontFamily: 'Arial, sans-serif', color: '#1F2937' }}>
       <header style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E5E7EB', padding: '20px 32px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
           <div>
-            <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 'bold', color: '#0F172A' }}>
-              Ferretería PROIS
-            </h1>
-            <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#6B7280', fontStyle: 'italic' }}>
-              “Todo para construir con confianza.”
-            </p>
+            <img
+              src="/logo-lud.png"
+              alt="ERP LUD"
+              style={{
+                width: '165px',
+                maxWidth: '100%',
+                height: 'auto',
+                display: 'block',
+                objectFit: 'contain',
+              }}
+            />
           </div>
 
           <div ref={menuRef} style={{ position: 'relative' }}>
@@ -860,18 +1064,18 @@ export default function InventarioPage() {
                 color: '#111827',
                 cursor: 'pointer',
                 fontWeight: 'bold',
-                fontSize: '14px',
+                fontSize: '13px',
                 boxShadow: '0 8px 18px rgba(0,0,0,0.05)',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
               }}
             >
-              <span style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor: '#0F766E', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', fontWeight: 'bold' }}>
+              <span style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor: '#0F766E', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold' }}>
                 A
               </span>
               Admin
-              <span style={{ fontSize: '12px', color: '#6B7280' }}>▼</span>
+              <span style={{ fontSize: '11px', color: '#6B7280' }}></span>
             </button>
 
             {menuAbierto && (
@@ -895,9 +1099,28 @@ export default function InventarioPage() {
       </header>
 
       <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px' }}>
-        <a href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '20px', color: '#374151', textDecoration: 'none', fontWeight: 'bold', backgroundColor: '#FFFFFF', padding: '12px 16px', borderRadius: '12px', border: '1px solid #E5E7EB' }}>
-          ← Volver al dashboard
-        </a>
+        <nav
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '18px',
+            fontSize: '12px',
+          }}
+        >
+          <Link
+            href="/dashboard"
+            style={{
+              color: '#0F766E',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+            }}
+          >
+            Dashboard
+          </Link>
+          <span style={{ color: '#9CA3AF' }}>›</span>
+          <span style={{ color: '#6B7280' }}>Inventario</span>
+        </nav>
 
         <div style={{ marginBottom: '22px' }}>
           <button type="button" onClick={() => setPestanaActiva('registros')} style={estiloPestana(pestanaActiva === 'registros')}>Registros</button>
@@ -908,7 +1131,7 @@ export default function InventarioPage() {
         {pestanaActiva === 'registros' && (
           <>
             <div style={{ ...estiloCaja, marginBottom: '24px' }}>
-              <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#111827' }}>
+              <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#111827', fontWeight: 'bold' }}>
                 {idProductoEditando ? 'Editar producto' : 'Registro de productos'}
               </h2>
 
@@ -919,10 +1142,15 @@ export default function InventarioPage() {
               )}
 
               <form onSubmit={guardarProducto}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
-                  <div>
-                    <label style={estiloLabel}>Descripción</label>
-                    <input type="text" list="lista-descripciones" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} required placeholder="Escriba o seleccione una descripción" style={estiloInput} />
+                <div style={estiloFormularioCompacto}>
+                  <div style={estiloCampoLinea}>
+                    <label style={estiloLabelLinea}>Código</label>
+                    <input type="text" value={codigo} onChange={(e) => setCodigo(e.target.value)} placeholder="Código" style={estiloInputCompacto} />
+                  </div>
+
+                  <div style={estiloCampoLinea}>
+                    <label style={estiloLabelLinea}>Descripción</label>
+                    <input type="text" list="lista-descripciones" value={descripcion} onChange={(e) => setDescripcion(e.target.value)} required placeholder="Descripción" style={estiloInputCompacto} />
                     <datalist id="lista-descripciones">
                       {descripcionesExistentes.map((item, index) => (
                         <option key={index} value={item} />
@@ -930,9 +1158,9 @@ export default function InventarioPage() {
                     </datalist>
                   </div>
 
-                  <div>
-                    <label style={estiloLabel}>Categoría</label>
-                    <input type="text" list="lista-categorias" value={categoria} onChange={(e) => setCategoria(e.target.value)} required placeholder="Categoría" style={estiloInput} />
+                  <div style={estiloCampoLinea}>
+                    <label style={estiloLabelLinea}>Categoría</label>
+                    <input type="text" list="lista-categorias" value={categoria} onChange={(e) => setCategoria(e.target.value)} required placeholder="Categoría" style={estiloInputCompacto} />
                     <datalist id="lista-categorias">
                       {categoriasExistentes.map((item, index) => (
                         <option key={index} value={item} />
@@ -940,52 +1168,66 @@ export default function InventarioPage() {
                     </datalist>
                   </div>
 
-                  <div>
-                    <label style={estiloLabel}>Unidad de medida</label>
-                    <input type="text" value={unidadMedida} onChange={(e) => setUnidadMedida(e.target.value)} required placeholder="Unidad" style={estiloInput} />
+                  <div style={estiloCampoLinea}>
+                    <label style={estiloLabelLinea}>Unidad</label>
+                    <input
+                      type="text"
+                      list="lista-unidades-medida"
+                      value={unidadMedida}
+                      onChange={(e) => setUnidadMedida(e.target.value)}
+                      onBlur={(e) => setUnidadMedida(capitalizarInicial(e.target.value))}
+                      required
+                      placeholder="Unidad"
+                      style={estiloInputCompacto}
+                    />
+                    <datalist id="lista-unidades-medida">
+                      {unidadesMedidaCompletas.map((item, index) => (
+                        <option key={index} value={item} />
+                      ))}
+                    </datalist>
                   </div>
 
-                  <div>
-                    <label style={estiloLabel}>Precio compra</label>
-                    <input type="number" step="0.01" value={precioCompra} onChange={(e) => setPrecioCompra(e.target.value)} required style={estiloInput} />
+                  <div style={estiloCampoLinea}>
+                    <label style={estiloLabelLinea}>Precio compra</label>
+                    <input type="number" step="0.01" value={precioCompra} onChange={(e) => setPrecioCompra(e.target.value)} required style={estiloInputCompacto} />
                   </div>
 
-                  <div>
-                    <label style={estiloLabel}>Precio venta</label>
-                    <input type="number" step="0.01" value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} required style={estiloInput} />
+                  <div style={estiloCampoLinea}>
+                    <label style={estiloLabelLinea}>Precio venta</label>
+                    <input type="number" step="0.01" value={precioVenta} onChange={(e) => setPrecioVenta(e.target.value)} required style={estiloInputCompacto} />
                   </div>
 
-                  <div>
-                    <label style={estiloLabel}>Stock actual</label>
-                    <input type="number" value={stockActual} onChange={(e) => setStockActual(e.target.value)} required style={estiloInput} />
+                  <div style={estiloCampoLinea}>
+                    <label style={estiloLabelLinea}>Stock actual</label>
+                    <input type="number" value={stockActual} onChange={(e) => setStockActual(e.target.value)} required style={estiloInputPequeno} />
                   </div>
 
-                  <div>
-                    <label style={estiloLabel}>Stock mínimo</label>
-                    <input type="number" value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} required min="0" style={estiloInput} />
+                  <div style={estiloCampoLinea}>
+                    <label style={estiloLabelLinea}>Stock mínimo</label>
+                    <input type="number" value={stockMinimo} onChange={(e) => setStockMinimo(e.target.value)} required min="0" style={estiloInputPequeno} />
                   </div>
 
-                  <div>
-                    <label style={estiloLabel}>Impuesto</label>
-                    <select value={tipoImpuesto} onChange={(e) => setTipoImpuesto(e.target.value)} required style={estiloInput}>
+                  <div style={estiloCampoLinea}>
+                    <label style={estiloLabelLinea}>Impuesto</label>
+                    <select value={tipoImpuesto} onChange={(e) => setTipoImpuesto(e.target.value)} required style={estiloInputPequeno}>
                       <option value="ISV">ISV (15%)</option>
                       <option value="Exento">Exento (0%)</option>
                     </select>
                   </div>
 
-                  <div>
-                    <label style={estiloLabel}>Fecha de registro</label>
-                    <input type="date" value={fechaRegistro} onChange={(e) => setFechaRegistro(e.target.value)} required style={estiloInput} />
+                  <div style={estiloCampoLinea}>
+                    <label style={estiloLabelLinea}>Fecha</label>
+                    <input type="date" value={fechaRegistro} onChange={(e) => setFechaRegistro(e.target.value)} required style={estiloInputFecha} />
                   </div>
                 </div>
 
                 <div style={{ marginTop: '22px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  <button type="submit" style={{ padding: '12px 22px', cursor: 'pointer', backgroundColor: '#0F766E', color: '#FFFFFF', border: 'none', borderRadius: '12px', fontWeight: 'bold' }}>
+                  <button type="submit" style={estiloBotonFormularioPrimario}>
                     {idProductoEditando ? 'Actualizar producto' : 'Guardar producto'}
                   </button>
 
                   {idProductoEditando && (
-                    <button type="button" onClick={limpiarFormulario} style={{ padding: '12px 22px', cursor: 'pointer', backgroundColor: '#FFFFFF', color: '#374151', border: '1px solid #D1D5DB', borderRadius: '12px', fontWeight: 'bold' }}>
+                    <button type="button" onClick={limpiarFormulario} style={estiloBotonFormularioSecundario}>
                       Cancelar edición
                     </button>
                   )}
@@ -995,7 +1237,7 @@ export default function InventarioPage() {
 
             <div style={estiloCaja}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '14px', flexWrap: 'wrap' }}>
-                <h2 style={{ margin: 0, color: '#111827' }}>Listado de productos</h2>
+                <h2 style={{ margin: 0, color: '#111827', fontWeight: 'bold' }}>Listado de productos</h2>
                 <div>
                   <button type="button" onClick={() => setVistaProductos('kanban')} style={estiloVista(vistaProductos === 'kanban')}>Kanban</button>
                   <button type="button" onClick={() => setVistaProductos('lista')} style={estiloVista(vistaProductos === 'lista')}>Lista</button>
@@ -1008,7 +1250,7 @@ export default function InventarioPage() {
                   type="text"
                   value={busquedaProducto}
                   onChange={(e) => setBusquedaProducto(e.target.value)}
-                  placeholder="Buscar por descripción, categoría o unidad"
+                  placeholder="Buscar por código, descripción, categoría o unidad"
                   style={estiloInput}
                 />
               </div>
@@ -1028,39 +1270,42 @@ export default function InventarioPage() {
                     return (
                       <div key={p.id_producto} style={{ backgroundColor: esStockBajo ? '#FEF2F2' : '#FFFFFF', border: esStockBajo ? '1px solid #FCA5A5' : '1px solid #E5E7EB', padding: '20px', borderRadius: '20px' }}>
                         <strong>{p.descripcion}</strong>
+                        <div style={{ color: '#6B7280', fontSize: '12px', marginTop: '6px' }}>
+                          Código: {p.codigo || '-'}
+                        </div>
 
                         {esStockBajo && (
-                          <div style={{ marginTop: '10px', padding: '8px 10px', borderRadius: '10px', backgroundColor: '#FEE2E2', color: '#B91C1C', fontWeight: 'bold', fontSize: '13px' }}>
+                          <div style={{ marginTop: '10px', padding: '8px 10px', borderRadius: '10px', backgroundColor: '#FEE2E2', color: '#B91C1C', fontWeight: 'bold', fontSize: '12px' }}>
                             ⚠ Stock bajo | Mínimo: {stockMinimoValor}
                           </div>
                         )}
 
-                        <div style={{ color: '#4B5563', lineHeight: 1.8, fontSize: '14px', marginTop: '12px' }}>
+                        <div style={{ color: '#4B5563', lineHeight: 1.8, fontSize: '13px', marginTop: '12px' }}>
                           <div><strong>Categoría:</strong> {p.categoria}</div>
                           <div><strong>Unidad:</strong> {p.unidad_medida}</div>
-                          <div><strong>Precio compra:</strong> L {p.precio_compra}</div>
-                          <div><strong>Precio venta:</strong> L {p.precio_venta}</div>
+                          <div><strong>Precio compra:</strong> {formatearMoneda(p.precio_compra)}</div>
+                          <div><strong>Precio venta:</strong> {formatearMoneda(p.precio_venta)}</div>
                           <div><strong>Stock actual:</strong> {p.stock_actual}</div>
                           <div><strong>Stock mínimo:</strong> {stockMinimoValor}</div>
                           <div><strong>Impuesto:</strong> {Number(p.impuesto) === 0 ? 'Exento (0%)' : 'ISV (15%)'}</div>
-                          <div><strong>Fecha registro:</strong> {p.fecha_registro || 'Sin fecha'}</div>
+                          <div><strong>Fecha registro:</strong> {formatearFecha(p.fecha_registro)}</div>
                         </div>
 
                         <div style={{ marginTop: '16px', position: 'relative' }}>
                           <button
                             type="button"
                             onClick={() => setMenuAccionAbierto(menuAccionAbierto === p.id_producto ? null : p.id_producto)}
-                            style={{ padding: '10px 16px', cursor: 'pointer', backgroundColor: '#FFFFFF', color: '#374151', border: '1px solid #D1D5DB', borderRadius: '12px', fontWeight: 'bold' }}
+                            style={{ padding: '9px 15px', cursor: 'pointer', backgroundColor: '#ECFDF5', color: '#0F766E', border: '1px solid #A7F3D0', borderRadius: '999px', fontWeight: 'bold', fontSize: '12px', boxShadow: '0 6px 14px rgba(15,118,110,0.10)' }}
                           >
-                            Acciones ▾
+                            Acciones
                           </button>
 
                           {menuAccionAbierto === p.id_producto && (
-                            <div style={{ position: 'absolute', top: '44px', left: 0, width: '150px', backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', boxShadow: '0 10px 24px rgba(0,0,0,0.10)', zIndex: 20, overflow: 'hidden' }}>
-                              <button type="button" onClick={() => editarProducto(p)} style={{ width: '100%', padding: '11px 14px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#374151', fontWeight: 'bold' }}>
+                            <div style={{ position: 'absolute', top: '44px', left: 0, width: '170px', backgroundColor: '#FFFFFF', border: '1px solid #D9DEE5', borderRadius: '14px', boxShadow: '0 16px 34px rgba(15,23,42,0.14)', zIndex: 20, overflow: 'hidden' }}>
+                              <button type="button" onClick={() => editarProducto(p)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#374151', fontWeight: 'bold', fontSize: '12px' }}>
                                 Editar
                               </button>
-                              <button type="button" onClick={() => eliminarProducto(p.id_producto)} style={{ width: '100%', padding: '11px 14px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#B91C1C', fontWeight: 'bold' }}>
+                              <button type="button" onClick={() => eliminarProducto(p.id_producto)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#B91C1C', fontWeight: 'bold', fontSize: '12px' }}>
                                 Eliminar
                               </button>
                             </div>
@@ -1074,17 +1319,18 @@ export default function InventarioPage() {
                 <div style={estiloTablaContenedor}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#FFFFFF' }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#F3F4F6' }}>
-                        <th style={estiloTh}>Descripción</th>
-                        <th style={estiloTh}>Categoría</th>
-                        <th style={estiloTh}>Unidad</th>
-                        <th style={estiloTh}>Precio compra</th>
-                        <th style={estiloTh}>Precio venta</th>
-                        <th style={estiloTh}>Stock</th>
-                        <th style={estiloTh}>Stock mínimo</th>
-                        <th style={estiloTh}>Impuesto</th>
-                        <th style={estiloTh}>Fecha registro</th>
-                        <th style={estiloTh}>Acción</th>
+                      <tr style={{ backgroundColor: '#EAECEF' }}>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Código</th>
+                        <th style={{ ...estiloTh, textAlign: 'left' as const }}>Descripción</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Categoría</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Unidad</th>
+                        <th style={{ ...estiloTh, textAlign: 'right' as const }}>Precio compra</th>
+                        <th style={{ ...estiloTh, textAlign: 'right' as const }}>Precio venta</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Stock</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Stock mínimo</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Impuesto</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Fecha registro</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Acción</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1093,12 +1339,13 @@ export default function InventarioPage() {
 
                         return (
                           <tr key={p.id_producto} style={{ backgroundColor: esStockBajo ? '#FEF2F2' : '#FFFFFF' }}>
-                            <td style={estiloTd}>{p.descripcion}</td>
-                            <td style={estiloTd}>{p.categoria}</td>
-                            <td style={estiloTd}>{p.unidad_medida}</td>
-                            <td style={estiloTd}>L {p.precio_compra}</td>
-                            <td style={estiloTd}>L {p.precio_venta}</td>
-                            <td style={estiloTd}>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{p.codigo || '-'}</td>
+                            <td style={{ ...estiloTd, textAlign: 'left' as const }}>{p.descripcion}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{p.categoria}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{p.unidad_medida}</td>
+                            <td style={{ ...estiloTd, textAlign: 'right' as const }}>{formatearMoneda(p.precio_compra)}</td>
+                            <td style={{ ...estiloTd, textAlign: 'right' as const }}>{formatearMoneda(p.precio_venta)}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>
                               {p.stock_actual}
                               {esStockBajo && (
                                 <span style={{ color: '#B91C1C', fontWeight: 'bold', marginLeft: '8px' }}>
@@ -1106,24 +1353,24 @@ export default function InventarioPage() {
                                 </span>
                               )}
                             </td>
-                            <td style={estiloTd}>{Number(p.stock_minimo ?? 10)}</td>
-                            <td style={estiloTd}>{Number(p.impuesto) === 0 ? 'Exento (0%)' : 'ISV (15%)'}</td>
-                            <td style={estiloTd}>{p.fecha_registro || 'Sin fecha'}</td>
-                            <td style={{ ...estiloTd, position: 'relative' }}>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{Number(p.stock_minimo ?? 10)}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{Number(p.impuesto) === 0 ? 'Exento (0%)' : 'ISV (15%)'}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{formatearFecha(p.fecha_registro)}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const, position: 'relative' }}>
                               <button
                                 type="button"
                                 onClick={() => setMenuAccionAbierto(menuAccionAbierto === p.id_producto ? null : p.id_producto)}
-                                style={{ padding: '8px 12px', cursor: 'pointer', backgroundColor: '#FFFFFF', color: '#374151', border: '1px solid #D1D5DB', borderRadius: '10px', fontWeight: 'bold' }}
+                                style={{ padding: '8px 14px', cursor: 'pointer', backgroundColor: '#ECFDF5', color: '#0F766E', border: '1px solid #A7F3D0', borderRadius: '999px', fontWeight: 'bold', fontSize: '12px', boxShadow: '0 6px 14px rgba(15,118,110,0.10)' }}
                               >
-                                Acciones ▾
+                                Acciones
                               </button>
 
                               {menuAccionAbierto === p.id_producto && (
-                                <div style={{ position: 'absolute', top: '48px', right: '14px', width: '150px', backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '12px', boxShadow: '0 10px 24px rgba(0,0,0,0.10)', zIndex: 20, overflow: 'hidden' }}>
-                                  <button type="button" onClick={() => editarProducto(p)} style={{ width: '100%', padding: '11px 14px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#374151', fontWeight: 'bold' }}>
+                                <div style={{ position: 'absolute', top: '48px', right: '14px', width: '170px', backgroundColor: '#FFFFFF', border: '1px solid #D9DEE5', borderRadius: '14px', boxShadow: '0 16px 34px rgba(15,23,42,0.14)', zIndex: 20, overflow: 'hidden' }}>
+                                  <button type="button" onClick={() => editarProducto(p)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#374151', fontWeight: 'bold', fontSize: '12px' }}>
                                     Editar
                                   </button>
-                                  <button type="button" onClick={() => eliminarProducto(p.id_producto)} style={{ width: '100%', padding: '11px 14px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#B91C1C', fontWeight: 'bold' }}>
+                                  <button type="button" onClick={() => eliminarProducto(p.id_producto)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#B91C1C', fontWeight: 'bold', fontSize: '12px' }}>
                                     Eliminar
                                   </button>
                                 </div>
@@ -1142,13 +1389,38 @@ export default function InventarioPage() {
 
         {pestanaActiva === 'operaciones' && (
           <div style={estiloCaja}>
-            <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#111827' }}>Operaciones de stock</h2>
+            <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#111827', fontWeight: 'bold' }}>Operaciones de stock</h2>
 
             <form onSubmit={guardarOperacionStock}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
                 <div>
+                  <label style={estiloLabel}>Código</label>
+                  <input
+                    type="text"
+                    list="lista-codigos-operacion"
+                    value={codigoOperacion}
+                    onChange={(e) => manejarCambioCodigoOperacion(e.target.value)}
+                    placeholder="Código del producto"
+                    style={estiloInput}
+                  />
+                  <datalist id="lista-codigos-operacion">
+                    {codigosExistentes.map((item, index) => (
+                      <option key={index} value={item} />
+                    ))}
+                  </datalist>
+                </div>
+
+                <div>
                   <label style={estiloLabel}>Descripción</label>
-                  <input type="text" list="lista-descripciones-operacion" value={descripcionOperacion} onChange={(e) => setDescripcionOperacion(e.target.value)} required placeholder="Seleccione una descripción existente" style={estiloInput} />
+                  <input
+                    type="text"
+                    list="lista-descripciones-operacion"
+                    value={descripcionOperacion}
+                    onChange={(e) => manejarCambioDescripcionOperacion(e.target.value)}
+                    required={!codigoOperacion.trim()}
+                    placeholder="Seleccione una descripción existente"
+                    style={estiloInput}
+                  />
                   <datalist id="lista-descripciones-operacion">
                     {descripcionesExistentes.map((item, index) => (
                       <option key={index} value={item} />
@@ -1176,7 +1448,7 @@ export default function InventarioPage() {
               </div>
 
               <div style={{ marginTop: '22px' }}>
-                <button type="submit" style={{ padding: '12px 22px', cursor: 'pointer', backgroundColor: '#0F766E', color: '#FFFFFF', border: 'none', borderRadius: '12px', fontWeight: 'bold' }}>
+                <button type="submit" style={estiloBotonFormularioPrimario}>
                   Guardar operación
                 </button>
               </div>
@@ -1186,7 +1458,7 @@ export default function InventarioPage() {
 
         {pestanaActiva === 'reportes' && (
           <div style={estiloCaja}>
-            <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#111827' }}>Reportes de inventario</h2>
+            <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#111827', fontWeight: 'bold' }}>Reportes de inventario</h2>
 
             <div
               style={{
@@ -1198,14 +1470,66 @@ export default function InventarioPage() {
                 flexWrap: 'wrap',
               }}
             >
-              <div style={{ maxWidth: '360px', width: '100%' }}>
-                <label style={estiloLabel}>Seleccione el reporte</label>
-                <select value={tipoReporte} onChange={(e) => setTipoReporte(e.target.value as TipoReporteInventario)} style={estiloInput}>
-                  <option value="productos">Reporte General de Productos</option>
-                  <option value="movimientos">Reporte Entradas / Salidas</option>
-                </select>
-              </div>
+              <div
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    flexWrap: 'wrap',
+  }}
+>
+  <button
+    type="button"
+    onClick={() => setTipoReporte('productos')}
+    style={{
+      ...estiloBotonFormularioSecundario,
+      backgroundColor:
+        tipoReporte === 'productos'
+          ? '#0F766E'
+          : '#FFFFFF',
+      color:
+        tipoReporte === 'productos'
+          ? '#FFFFFF'
+          : '#374151',
+      border:
+        tipoReporte === 'productos'
+          ? '1px solid #0F766E'
+          : '1px solid #D1D5DB',
+      boxShadow:
+        tipoReporte === 'productos'
+          ? '0 6px 14px rgba(15,118,110,0.14)'
+          : 'none',
+    }}
+  >
+    Reporte General
+  </button>
 
+  <button
+    type="button"
+    onClick={() => setTipoReporte('movimientos')}
+    style={{
+      ...estiloBotonFormularioSecundario,
+      backgroundColor:
+        tipoReporte === 'movimientos'
+          ? '#0F766E'
+          : '#FFFFFF',
+      color:
+        tipoReporte === 'movimientos'
+          ? '#FFFFFF'
+          : '#374151',
+      border:
+        tipoReporte === 'movimientos'
+          ? '1px solid #0F766E'
+          : '1px solid #D1D5DB',
+      boxShadow:
+        tipoReporte === 'movimientos'
+          ? '0 6px 14px rgba(15,118,110,0.14)'
+          : 'none',
+    }}
+  >
+    Entradas / Salidas
+  </button>
+</div>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 <button
                   type="button"
@@ -1214,15 +1538,7 @@ export default function InventarioPage() {
                       ? exportarProductosExcel()
                       : exportarMovimientosExcel()
                   }
-                  style={{
-                    padding: '12px 18px',
-                    backgroundColor: '#0F766E',
-                    color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '10px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                  }}
+                  style={estiloBotonFormularioPrimario}
                 >
                   Exportar Excel
                 </button>
@@ -1235,13 +1551,10 @@ export default function InventarioPage() {
                       : imprimirMovimientosPdf()
                   }
                   style={{
-                    padding: '12px 18px',
+                    ...estiloBotonFormularioSecundario,
                     backgroundColor: '#374151',
                     color: '#FFFFFF',
-                    border: 'none',
-                    borderRadius: '10px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
+                    border: '1px solid #374151',
                   }}
                 >
                   Imprimir / PDF
@@ -1291,15 +1604,11 @@ export default function InventarioPage() {
                       type="button"
                       onClick={() => setMostrarSoloAlertas(!mostrarSoloAlertas)}
                       style={{
+                        ...estiloBotonFormularioPrimario,
                         width: '100%',
-                        padding: '12px 18px',
                         backgroundColor: mostrarSoloAlertas ? '#991B1B' : '#DC2626',
-                        color: '#FFFFFF',
-                        border: 'none',
-                        borderRadius: '12px',
-                        fontWeight: 'bold',
-                        cursor: 'pointer',
-                        boxShadow: '0 8px 18px rgba(220,38,38,0.18)',
+                        border: `1px solid ${mostrarSoloAlertas ? '#991B1B' : '#DC2626'}`,
+                        boxShadow: '0 6px 14px rgba(220,38,38,0.14)',
                       }}
                     >
                       Alertas
@@ -1315,22 +1624,23 @@ export default function InventarioPage() {
                 <div style={estiloTablaContenedor}>
                   <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#F3F4F6' }}>
-                        <th style={estiloTh}>Descripción</th>
-                        <th style={estiloTh}>Categoría</th>
-                        <th style={estiloTh}>Unidad</th>
-                        <th style={estiloTh}>Precio compra</th>
-                        <th style={estiloTh}>Precio venta</th>
-                        <th style={estiloTh}>Stock</th>
-                        <th style={estiloTh}>Stock mínimo</th>
-                        <th style={estiloTh}>Impuesto</th>
-                        <th style={estiloTh}>Fecha registro</th>
+                      <tr style={{ backgroundColor: '#EAECEF' }}>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Código</th>
+                        <th style={{ ...estiloTh, textAlign: 'left' as const }}>Descripción</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Categoría</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Unidad</th>
+                        <th style={{ ...estiloTh, textAlign: 'right' as const }}>Precio compra</th>
+                        <th style={{ ...estiloTh, textAlign: 'right' as const }}>Precio venta</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Stock</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Stock mínimo</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Impuesto</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Fecha registro</th>
                       </tr>
                     </thead>
                     <tbody>
                       {productosFiltradosReporte.length === 0 ? (
                         <tr>
-                          <td colSpan={9} style={{ padding: '18px', textAlign: 'center', color: '#6B7280' }}>
+                          <td colSpan={10} style={{ padding: '18px', textAlign: 'center', color: '#6B7280' }}>
                             No hay productos para mostrar.
                           </td>
                         </tr>
@@ -1340,12 +1650,13 @@ export default function InventarioPage() {
 
                           return (
                             <tr key={p.id_producto} style={{ backgroundColor: esStockBajo ? '#FEF2F2' : '#FFFFFF' }}>
-                              <td style={estiloTd}>{p.descripcion}</td>
-                              <td style={estiloTd}>{p.categoria}</td>
-                              <td style={estiloTd}>{p.unidad_medida}</td>
-                              <td style={estiloTd}>L {p.precio_compra}</td>
-                              <td style={estiloTd}>L {p.precio_venta}</td>
-                              <td style={estiloTd}>
+                              <td style={{ ...estiloTd, textAlign: 'center' as const }}>{p.codigo || '-'}</td>
+                              <td style={{ ...estiloTd, textAlign: 'left' as const }}>{p.descripcion}</td>
+                              <td style={{ ...estiloTd, textAlign: 'center' as const }}>{p.categoria}</td>
+                              <td style={{ ...estiloTd, textAlign: 'center' as const }}>{p.unidad_medida}</td>
+                              <td style={{ ...estiloTd, textAlign: 'right' as const }}>{formatearMoneda(p.precio_compra)}</td>
+                              <td style={{ ...estiloTd, textAlign: 'right' as const }}>{formatearMoneda(p.precio_venta)}</td>
+                              <td style={{ ...estiloTd, textAlign: 'center' as const }}>
                                 {p.stock_actual}
                                 {esStockBajo && (
                                   <span style={{ color: '#B91C1C', fontWeight: 'bold', marginLeft: '8px' }}>
@@ -1353,9 +1664,9 @@ export default function InventarioPage() {
                                   </span>
                                 )}
                               </td>
-                              <td style={estiloTd}>{Number(p.stock_minimo ?? 10)}</td>
-                              <td style={estiloTd}>{Number(p.impuesto) === 0 ? 'Exento (0%)' : 'ISV (15%)'}</td>
-                              <td style={estiloTd}>{p.fecha_registro || 'Sin fecha'}</td>
+                              <td style={{ ...estiloTd, textAlign: 'center' as const }}>{Number(p.stock_minimo ?? 10)}</td>
+                              <td style={{ ...estiloTd, textAlign: 'center' as const }}>{Number(p.impuesto) === 0 ? 'Exento (0%)' : 'ISV (15%)'}</td>
+                              <td style={{ ...estiloTd, textAlign: 'center' as const }}>{formatearFecha(p.fecha_registro)}</td>
                             </tr>
                           )
                         })
@@ -1407,33 +1718,35 @@ export default function InventarioPage() {
                 <div style={estiloTablaContenedor}>
                   <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#F3F4F6' }}>
-                        <th style={estiloTh}>Fecha</th>
-                        <th style={estiloTh}>Producto</th>
-                        <th style={estiloTh}>Categoría</th>
-                        <th style={estiloTh}>Tipo</th>
-                        <th style={estiloTh}>Cantidad</th>
-                        <th style={estiloTh}>Stock anterior</th>
-                        <th style={estiloTh}>Stock nuevo</th>
+                      <tr style={{ backgroundColor: '#EAECEF' }}>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Fecha</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Código</th>
+                        <th style={{ ...estiloTh, textAlign: 'left' as const }}>Producto</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Categoría</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Tipo</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Cantidad</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Stock anterior</th>
+                        <th style={{ ...estiloTh, textAlign: 'center' as const }}>Stock nuevo</th>
                       </tr>
                     </thead>
                     <tbody>
                       {movimientosFiltradosReporte.length === 0 ? (
                         <tr>
-                          <td colSpan={7} style={{ padding: '18px', textAlign: 'center', color: '#6B7280' }}>
+                          <td colSpan={8} style={{ padding: '18px', textAlign: 'center', color: '#6B7280' }}>
                             No hay movimientos para mostrar.
                           </td>
                         </tr>
                       ) : (
                         movimientosFiltradosReporte.map((m) => (
                           <tr key={m.id_movimiento}>
-                            <td style={estiloTd}>{m.fecha_registro || 'Sin fecha'}</td>
-                            <td style={estiloTd}>{m.descripcion}</td>
-                            <td style={estiloTd}>{obtenerCategoriaMovimiento(m)}</td>
-                            <td style={estiloTd}>{m.tipo_operacion}</td>
-                            <td style={estiloTd}>{m.cantidad}</td>
-                            <td style={estiloTd}>{m.stock_anterior}</td>
-                            <td style={estiloTd}>{m.stock_nuevo}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{formatearFecha(m.fecha_registro)}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{obtenerCodigoMovimiento(m)}</td>
+                            <td style={{ ...estiloTd, textAlign: 'left' as const }}>{m.descripcion}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{obtenerCategoriaMovimiento(m)}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{m.tipo_operacion}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{m.cantidad}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{m.stock_anterior}</td>
+                            <td style={{ ...estiloTd, textAlign: 'center' as const }}>{m.stock_nuevo}</td>
                           </tr>
                         ))
                       )}
