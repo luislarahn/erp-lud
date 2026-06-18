@@ -53,19 +53,21 @@ export default function ClientesPage() {
 
   function estiloPestana(activa: boolean) {
     return {
-      padding: '11px 18px',
+      padding: '14px 18px',
       cursor: 'pointer',
-      backgroundColor: activa ? '#0F766E' : '#FFFFFF',
-      color: activa ? '#FFFFFF' : '#374151',
-      border: `1px solid ${activa ? '#0F766E' : '#E5E7EB'}`,
-      borderRadius: '12px',
+      backgroundColor: activa ? '#005099' : '#FFFFFF',
+      color: activa ? '#FFFFFF' : '#3F4A56',
+      border: `1px solid ${activa ? '#005099' : '#D8DEE6'}`,
+      borderRadius: '0',
       fontWeight: 'bold' as const,
-      marginRight: '10px',
-      marginBottom: '10px',
+      marginRight: '0',
+      marginBottom: '0',
       boxShadow: activa
-        ? '0 8px 18px rgba(15,118,110,0.18)'
+        ? '0 8px 18px rgba(15,23,42,0.10)'
         : '0 2px 6px rgba(0,0,0,0.03)',
-      fontSize: '13px',
+      fontSize: '12px',
+      minWidth: '120px',
+      whiteSpace: 'nowrap' as const,
     }
   }
 
@@ -73,118 +75,128 @@ export default function ClientesPage() {
     <div
       style={{
         minHeight: '100vh',
-        backgroundColor: '#F3F4F6',
+        backgroundColor: '#F2F4F7',
         fontFamily: 'Arial, sans-serif',
-        color: '#1F2937',
+        color: '#1F2933',
       }}
     >
       <header
         style={{
           backgroundColor: '#FFFFFF',
-          borderBottom: '1px solid #E5E7EB',
-          padding: '20px 32px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
+          borderBottom: '1px solid #D8DEE6',
+          boxShadow: '0 2px 8px rgba(15,23,42,0.05)',
         }}
       >
         <div
           style={{
-            maxWidth: '1280px',
-            margin: '0 auto',
-            display: 'flex',
-            justifyContent: 'space-between',
+            width: '100%',
+            minHeight: '48px',
+            padding: '0 18px',
+            boxSizing: 'border-box',
+            display: 'grid',
+            gridTemplateColumns: '140px 1fr 90px',
             alignItems: 'center',
-            gap: '20px',
+            gap: '12px',
           }}
         >
-          <div
+          <Link
+            href="/dashboard"
             style={{
               display: 'flex',
               alignItems: 'center',
+              textDecoration: 'none',
+              minWidth: 0,
             }}
           >
             <img
               src="/logo-lud.png"
               alt="ERP LUD"
               style={{
-                width: '150px',
+                width: '112px',
                 maxWidth: '100%',
                 height: 'auto',
                 display: 'block',
                 objectFit: 'contain',
               }}
             />
-          </div>
+          </Link>
+
+          <div />
 
           <div
             ref={menuRef}
             style={{
               position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
             }}
           >
             <button
               onClick={() => setMenuAbierto(!menuAbierto)}
               style={{
-                padding: '12px 18px',
-                borderRadius: '12px',
-                border: '1px solid #D1D5DB',
-                backgroundColor: '#FFFFFF',
-                color: '#111827',
+                height: '28px',
+                padding: '0 9px',
+                borderRadius: '8px',
+                border: '1px solid #BFC7D1',
+                backgroundColor: '#F5F6F7',
+                color: '#5B6673',
                 cursor: 'pointer',
                 fontWeight: 'bold',
-                fontSize: '13px',
-                boxShadow: '0 8px 18px rgba(0,0,0,0.05)',
+                fontSize: '11px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '6px',
+                boxShadow: '0 2px 6px rgba(15,23,42,0.04)',
               }}
             >
               <span
                 style={{
-                  width: '34px',
-                  height: '34px',
+                  width: '18px',
+                  height: '18px',
                   borderRadius: '50%',
-                  backgroundColor: '#0F766E',
+                  backgroundColor: '#A2A3A3',
                   color: '#FFFFFF',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  fontSize: '13px',
+                  fontSize: '10px',
                   fontWeight: 'bold',
                 }}
               >
                 A
               </span>
               Admin
-              <span style={{ fontSize: '11px', color: '#6B7280' }}>▼</span>
+              <span style={{ fontSize: '9px', color: '#7A828A' }}>▾</span>
             </button>
 
             {menuAbierto && (
               <div
                 style={{
                   position: 'absolute',
-                  top: '58px',
+                  top: '36px',
                   right: 0,
-                  width: '150px',
+                  width: '185px',
                   backgroundColor: '#FFFFFF',
-                  border: '1px solid #E5E7EB',
-                  borderRadius: '16px',
-                  boxShadow: '0 18px 35px rgba(0,0,0,0.10)',
+                  border: '1px solid #D8DEE6',
+                  borderRadius: '8px',
+                  boxShadow: '0 14px 30px rgba(15,23,42,0.12)',
                   overflow: 'hidden',
                   zIndex: 1000,
                 }}
               >
                 <div
                   style={{
-                    padding: '14px 16px',
-                    borderBottom: '1px solid #F3F4F6',
+                    padding: '10px 13px',
+                    borderBottom: '1px solid #EEF2F7',
                     backgroundColor: '#FAFAFA',
                   }}
                 >
                   <div
                     style={{
                       fontWeight: 'bold',
-                      color: '#111827',
-                      fontSize: '13px',
+                      color: '#3F4A56',
+                      fontSize: '12px',
                     }}
                   >
                     Admin
@@ -192,8 +204,8 @@ export default function ClientesPage() {
                   <div
                     style={{
                       fontSize: '11px',
-                      color: '#6B7280',
-                      marginTop: '4px',
+                      color: '#7A828A',
+                      marginTop: '3px',
                     }}
                   >
                     Usuario del sistema
@@ -204,11 +216,11 @@ export default function ClientesPage() {
                   href="/documentacion"
                   style={{
                     display: 'block',
-                    padding: '13px 16px',
+                    padding: '10px 13px',
                     textDecoration: 'none',
-                    color: '#374151',
-                    fontSize: '13px',
-                    borderBottom: '1px solid #F3F4F6',
+                    color: '#3F4A56',
+                    fontSize: '12px',
+                    borderBottom: '1px solid #EEF2F7',
                   }}
                   onClick={() => setMenuAbierto(false)}
                 >
@@ -219,11 +231,11 @@ export default function ClientesPage() {
                   href="/soporte"
                   style={{
                     display: 'block',
-                    padding: '13px 16px',
+                    padding: '10px 13px',
                     textDecoration: 'none',
-                    color: '#374151',
-                    fontSize: '13px',
-                    borderBottom: '1px solid #F3F4F6',
+                    color: '#3F4A56',
+                    fontSize: '12px',
+                    borderBottom: '1px solid #EEF2F7',
                   }}
                   onClick={() => setMenuAbierto(false)}
                 >
@@ -234,11 +246,11 @@ export default function ClientesPage() {
                   href="/preferencias"
                   style={{
                     display: 'block',
-                    padding: '13px 16px',
+                    padding: '10px 13px',
                     textDecoration: 'none',
-                    color: '#374151',
-                    fontSize: '13px',
-                    borderBottom: '1px solid #F3F4F6',
+                    color: '#3F4A56',
+                    fontSize: '12px',
+                    borderBottom: '1px solid #EEF2F7',
                   }}
                   onClick={() => setMenuAbierto(false)}
                 >
@@ -250,13 +262,13 @@ export default function ClientesPage() {
                   style={{
                     width: '100%',
                     textAlign: 'left',
-                    padding: '13px 16px',
+                    padding: '10px 13px',
                     backgroundColor: '#FFFFFF',
                     border: 'none',
                     cursor: 'pointer',
-                    color: '#B91C1C',
-                    fontSize: '13px',
+                    color: '#00487A',
                     fontWeight: 'bold',
+                    fontSize: '12px',
                   }}
                 >
                   Cerrar sesión
@@ -269,32 +281,50 @@ export default function ClientesPage() {
 
       <main
         style={{
-          maxWidth: '1280px',
+          width: '100%',
+          maxWidth: '1600px',
           margin: '0 auto',
-          padding: '32px',
+          padding: '18px 20px 32px 20px',
+          boxSizing: 'border-box',
+          fontSize: '12px',
         }}
       >
-        <a
-          href="/dashboard"
+        <nav
           style={{
-            display: 'inline-flex',
+            display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            marginBottom: '20px',
-            color: '#374151',
-            textDecoration: 'none',
-            fontWeight: 'bold',
-            backgroundColor: '#FFFFFF',
-            padding: '12px 16px',
-            borderRadius: '12px',
-            border: '1px solid #E5E7EB',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.04)',
+            marginBottom: '18px',
+            fontSize: '12px',
           }}
         >
-          ← Volver al dashboard
-        </a>
+          <Link
+            href="/dashboard"
+            style={{
+              color: '#005099',
+              textDecoration: 'none',
+              fontWeight: 'bold',
+            }}
+          >
+            Dashboard
+          </Link>
+          <span style={{ color: '#A2A3A3' }}>›</span>
+          <span style={{ color: '#7A828A' }}>Clientes</span>
+        </nav>
 
-        <div style={{ marginBottom: '22px', display: 'flex', flexWrap: 'wrap' }}>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: '#FFFFFF',
+            border: '1px solid #D8DEE6',
+            borderRadius: '8px',
+            overflowX: 'auto',
+            overflowY: 'hidden',
+            marginBottom: '14px',
+            boxShadow: '0 3px 10px rgba(15,23,42,0.04)',
+          }}
+        >
           <button
             type="button"
             onClick={() => setPestanaActiva('facturacion')}
@@ -355,10 +385,10 @@ export default function ClientesPage() {
         <div
           style={{
             backgroundColor: '#FFFFFF',
-            border: '1px solid #E5E7EB',
-            borderRadius: '24px',
-            padding: '28px',
-            boxShadow: '0 10px 24px rgba(0,0,0,0.05)',
+            border: '1px solid #BFC7D1',
+            borderRadius: '10px',
+            padding: '20px',
+            boxShadow: '0 4px 12px rgba(15,23,42,0.06)',
           }}
         >
           {pestanaActiva === 'facturacion' && (

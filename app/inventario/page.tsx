@@ -704,11 +704,11 @@ export default function InventarioPage() {
             body {
               font-family: Arial, sans-serif;
               margin: 28px;
-              color: #111827;
+              color: #1F2933;
             }
 
             .encabezado {
-              border-bottom: 2px solid #111827;
+              border-bottom: 2px solid #1F2933;
               padding-bottom: 12px;
               margin-bottom: 18px;
             }
@@ -721,14 +721,14 @@ export default function InventarioPage() {
             h2 {
               margin: 6px 0 0 0;
               font-size: 16px;
-              color: #374151;
+              color: #3F4A56;
               font-weight: normal;
             }
 
             .meta {
               margin-top: 10px;
               font-size: 12px;
-              color: #4B5563;
+              color: #5B6673;
               line-height: 1.5;
             }
 
@@ -739,16 +739,16 @@ export default function InventarioPage() {
             }
 
             th {
-              background: #EAECEF;
-              color: #111827;
+              background: #F2F4F7;
+              color: #1F2933;
               text-align: left;
               padding: 8px;
-              border: 1px solid #D1D5DB;
+              border: 1px solid #BFC7D1;
             }
 
             td {
               padding: 7px;
-              border: 1px solid #E5E7EB;
+              border: 1px solid #D8DEE6;
               vertical-align: top;
             }
 
@@ -759,7 +759,7 @@ export default function InventarioPage() {
             .pie {
               margin-top: 18px;
               font-size: 11px;
-              color: #6B7280;
+              color: #7A828A;
             }
 
             @media print {
@@ -877,20 +877,30 @@ export default function InventarioPage() {
   }
 
 
+  const totalProductos = productos.length
+  const productosStockBajo = productos.filter((producto) => productoTieneStockBajo(producto)).length
+  const totalEntradas = movimientos.filter((movimiento) => obtenerTipoMovimientoBase(movimiento) === 'Entrada').length
+  const totalSalidas = movimientos.filter((movimiento) => obtenerTipoMovimientoBase(movimiento) === 'Salida').length
+  const valorInventarioVenta = productos.reduce((total, producto) => {
+    return total + Number(producto.precio_venta || 0) * Number(producto.stock_actual || 0)
+  }, 0)
+
+
   function estiloPestana(activa: boolean) {
     return {
-      padding: '11px 18px',
+      padding: '14px 22px',
       cursor: 'pointer',
-      backgroundColor: activa ? '#0F766E' : '#FFFFFF',
-      color: activa ? '#FFFFFF' : '#374151',
-      border: `1px solid ${activa ? '#0F766E' : '#E5E7EB'}`,
-      borderRadius: '12px',
+      backgroundColor: activa ? '#005099' : '#FFFFFF',
+      color: activa ? '#FFFFFF' : '#3F4A56',
+      border: `1px solid ${activa ? '#005099' : '#D8DEE6'}`,
+      borderRadius: '0',
       fontWeight: 'bold' as const,
-      marginRight: '10px',
+      marginRight: '0',
       boxShadow: activa
         ? '0 8px 18px rgba(15,118,110,0.18)'
         : '0 2px 6px rgba(0,0,0,0.03)',
       fontSize: '13px',
+      minWidth: '130px',
     }
   }
 
@@ -898,9 +908,9 @@ export default function InventarioPage() {
     return {
       padding: '10px 14px',
       cursor: 'pointer',
-      backgroundColor: activa ? '#0F766E' : '#FFFFFF',
-      color: activa ? '#FFFFFF' : '#374151',
-      border: `1px solid ${activa ? '#0F766E' : '#E5E7EB'}`,
+      backgroundColor: activa ? '#005099' : '#FFFFFF',
+      color: activa ? '#FFFFFF' : '#3F4A56',
+      border: `1px solid ${activa ? '#005099' : '#D8DEE6'}`,
       borderRadius: '10px',
       fontWeight: 'bold' as const,
       fontSize: '12px',
@@ -911,9 +921,9 @@ export default function InventarioPage() {
   const estiloBotonFormularioPrimario = {
     padding: '10px 14px',
     cursor: 'pointer',
-    backgroundColor: '#0F766E',
+    backgroundColor: '#005099',
     color: '#FFFFFF',
-    border: '1px solid #0F766E',
+    border: '1px solid #005099',
     borderRadius: '10px',
     fontWeight: 'bold' as const,
     fontSize: '12px',
@@ -925,8 +935,8 @@ export default function InventarioPage() {
     padding: '10px 14px',
     cursor: 'pointer',
     backgroundColor: '#FFFFFF',
-    color: '#374151',
-    border: '1px solid #D1D5DB',
+    color: '#3F4A56',
+    border: '1px solid #BFC7D1',
     borderRadius: '10px',
     fontWeight: 'bold' as const,
     fontSize: '12px',
@@ -937,8 +947,8 @@ export default function InventarioPage() {
     width: '100%',
     padding: '12px 14px',
     backgroundColor: '#FFFFFF',
-    color: '#111827',
-    border: '1px solid #D1D5DB',
+    color: '#1F2933',
+    border: '1px solid #BFC7D1',
     borderRadius: '12px',
     outline: 'none',
     fontSize: '13px',
@@ -948,7 +958,7 @@ export default function InventarioPage() {
   const estiloLabel = {
     display: 'block',
     marginBottom: '6px',
-    color: '#374151',
+    color: '#3F4A56',
     fontWeight: 600,
     fontSize: '13px',
   }
@@ -969,7 +979,7 @@ export default function InventarioPage() {
 
   const estiloLabelLinea = {
     margin: 0,
-    color: '#374151',
+    color: '#3F4A56',
     fontWeight: 600,
     fontSize: '13px',
     minWidth: '112px',
@@ -981,8 +991,8 @@ export default function InventarioPage() {
     maxWidth: '210px',
     padding: '9px 11px',
     backgroundColor: '#FFFFFF',
-    color: '#111827',
-    border: '1px solid #D1D5DB',
+    color: '#1F2933',
+    border: '1px solid #BFC7D1',
     borderRadius: '10px',
     outline: 'none',
     fontSize: '13px',
@@ -1000,26 +1010,26 @@ export default function InventarioPage() {
   }
 
   const estiloCaja = {
-    backgroundColor: '#F9FAFB',
-    border: '1px solid #D1D5DB',
-    borderRadius: '24px',
-    padding: '28px',
-    boxShadow: '0 10px 24px rgba(0,0,0,0.05)',
+    backgroundColor: '#FFFFFF',
+    border: '1px solid #BFC7D1',
+    borderRadius: '10px',
+    padding: '20px',
+    boxShadow: '0 4px 12px rgba(15,23,42,0.06)',
   }
 
   const estiloTablaContenedor = {
     overflowX: 'auto' as const,
-    border: '1px solid #D9DEE5',
-    borderRadius: '16px',
+    border: '1px solid #BFC7D1',
+    borderRadius: '8px',
     backgroundColor: '#FFFFFF',
   }
 
   const estiloTh = {
-    padding: '13px 14px',
+    padding: '10px 12px',
     textAlign: 'left' as const,
-    color: '#374151',
-    backgroundColor: '#F8FAFC',
-    borderBottom: '1px solid #D9DEE5',
+    color: '#3F4A56',
+    backgroundColor: '#F3F6F8',
+    borderBottom: '1px solid #BFC7D1',
     fontSize: '12px',
     fontWeight: 700,
     textTransform: 'uppercase' as const,
@@ -1028,68 +1038,173 @@ export default function InventarioPage() {
   }
 
   const estiloTd = {
-    padding: '13px 14px',
+    padding: '10px 12px',
     borderBottom: '1px solid #EEF2F7',
-    fontSize: '13px',
-    color: '#374151',
+    fontSize: '12px',
+    color: '#3F4A56',
     verticalAlign: 'middle' as const,
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#EAECEF', fontFamily: 'Arial, sans-serif', color: '#1F2937' }}>
-      <header style={{ backgroundColor: '#FFFFFF', borderBottom: '1px solid #E5E7EB', padding: '20px 32px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
-        <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
-          <div>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F2F4F7', fontFamily: 'Arial, sans-serif', color: '#1F2933' }}>
+      <header
+        style={{
+          backgroundColor: '#FFFFFF',
+          borderBottom: '1px solid #D8DEE6',
+          boxShadow: '0 2px 8px rgba(15,23,42,0.05)',
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            minHeight: '48px',
+            padding: '0 18px',
+            boxSizing: 'border-box',
+            display: 'grid',
+            gridTemplateColumns: '140px 1fr 90px',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <Link
+            href="/dashboard"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              textDecoration: 'none',
+              minWidth: 0,
+            }}
+          >
             <img
               src="/logo-lud.png"
               alt="ERP LUD"
               style={{
-                width: '165px',
+                width: '112px',
                 maxWidth: '100%',
                 height: 'auto',
                 display: 'block',
                 objectFit: 'contain',
               }}
             />
-          </div>
+          </Link>
 
-          <div ref={menuRef} style={{ position: 'relative' }}>
+          <div />
+
+          <div
+            ref={menuRef}
+            style={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+            }}
+          >
             <button
               onClick={() => setMenuAbierto(!menuAbierto)}
               style={{
-                padding: '12px 18px',
-                borderRadius: '12px',
-                border: '1px solid #D1D5DB',
-                backgroundColor: '#FFFFFF',
-                color: '#111827',
+                height: '28px',
+                padding: '0 9px',
+                borderRadius: '8px',
+                border: '1px solid #BFC7D1',
+                backgroundColor: '#F5F6F7',
+                color: '#5B6673',
                 cursor: 'pointer',
                 fontWeight: 'bold',
-                fontSize: '13px',
-                boxShadow: '0 8px 18px rgba(0,0,0,0.05)',
+                fontSize: '11px',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '10px',
+                gap: '6px',
+                boxShadow: '0 2px 6px rgba(15,23,42,0.04)',
               }}
             >
-              <span style={{ width: '34px', height: '34px', borderRadius: '50%', backgroundColor: '#0F766E', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 'bold' }}>
+              <span
+                style={{
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '50%',
+                  backgroundColor: '#A2A3A3',
+                  color: '#FFFFFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '10px',
+                  fontWeight: 'bold',
+                }}
+              >
                 A
               </span>
               Admin
-              <span style={{ fontSize: '11px', color: '#6B7280' }}></span>
+              <span style={{ fontSize: '9px', color: '#7A828A' }}>▾</span>
             </button>
 
             {menuAbierto && (
-              <div style={{ position: 'absolute', top: '58px', right: 0, width: '220px', backgroundColor: '#FFFFFF', border: '1px solid #E5E7EB', borderRadius: '16px', boxShadow: '0 18px 35px rgba(0,0,0,0.10)', overflow: 'hidden', zIndex: 1000 }}>
-                <Link href="/documentacion" style={{ display: 'block', padding: '13px 16px', textDecoration: 'none', color: '#374151' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '36px',
+                  right: 0,
+                  width: '185px',
+                  backgroundColor: '#FFFFFF',
+                  border: '1px solid #D8DEE6',
+                  borderRadius: '8px',
+                  boxShadow: '0 14px 30px rgba(15,23,42,0.12)',
+                  overflow: 'hidden',
+                  zIndex: 1000,
+                }}
+              >
+                <Link
+                  href="/documentacion"
+                  style={{
+                    display: 'block',
+                    padding: '10px 13px',
+                    textDecoration: 'none',
+                    color: '#3F4A56',
+                    fontSize: '12px',
+                  }}
+                >
                   Documentación
                 </Link>
-                <Link href="/soporte" style={{ display: 'block', padding: '13px 16px', textDecoration: 'none', color: '#374151' }}>
+                <Link
+                  href="/soporte"
+                  style={{
+                    display: 'block',
+                    padding: '10px 13px',
+                    textDecoration: 'none',
+                    color: '#3F4A56',
+                    fontSize: '12px',
+                    borderTop: '1px solid #EEF2F7',
+                  }}
+                >
                   Soporte
                 </Link>
-                <Link href="/preferencias" style={{ display: 'block', padding: '13px 16px', textDecoration: 'none', color: '#374151' }}>
+                <Link
+                  href="/preferencias"
+                  style={{
+                    display: 'block',
+                    padding: '10px 13px',
+                    textDecoration: 'none',
+                    color: '#3F4A56',
+                    fontSize: '12px',
+                    borderTop: '1px solid #EEF2F7',
+                  }}
+                >
                   Preferencias
                 </Link>
-                <button onClick={cerrarSesion} style={{ width: '100%', textAlign: 'left', padding: '13px 16px', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#B91C1C', fontWeight: 'bold' }}>
+                <button
+                  onClick={cerrarSesion}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '10px 13px',
+                    backgroundColor: '#FFFFFF',
+                    border: 'none',
+                    borderTop: '1px solid #EEF2F7',
+                    cursor: 'pointer',
+                    color: '#00487A',
+                    fontWeight: 'bold',
+                    fontSize: '12px',
+                  }}
+                >
                   Cerrar sesión
                 </button>
               </div>
@@ -1098,7 +1213,7 @@ export default function InventarioPage() {
         </div>
       </header>
 
-      <main style={{ maxWidth: '1280px', margin: '0 auto', padding: '32px' }}>
+      <main style={{ width: '100%', maxWidth: '1600px', margin: '0 auto', padding: '18px 20px 32px 20px', boxSizing: 'border-box' }}>
         <nav
           style={{
             display: 'flex',
@@ -1111,18 +1226,18 @@ export default function InventarioPage() {
           <Link
             href="/dashboard"
             style={{
-              color: '#0F766E',
+              color: '#005099',
               textDecoration: 'none',
               fontWeight: 'bold',
             }}
           >
             Dashboard
           </Link>
-          <span style={{ color: '#9CA3AF' }}>›</span>
-          <span style={{ color: '#6B7280' }}>Inventario</span>
+          <span style={{ color: '#A2A3A3' }}>›</span>
+          <span style={{ color: '#7A828A' }}>Inventario</span>
         </nav>
 
-        <div style={{ marginBottom: '22px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#FFFFFF', border: '1px solid #D8DEE6', borderRadius: '8px', overflow: 'hidden', marginBottom: '14px', boxShadow: '0 3px 10px rgba(15,23,42,0.04)' }}>
           <button type="button" onClick={() => setPestanaActiva('registros')} style={estiloPestana(pestanaActiva === 'registros')}>Registros</button>
           <button type="button" onClick={() => setPestanaActiva('operaciones')} style={estiloPestana(pestanaActiva === 'operaciones')}>Operaciones</button>
           <button type="button" onClick={() => setPestanaActiva('reportes')} style={estiloPestana(pestanaActiva === 'reportes')}>Reportes</button>
@@ -1131,12 +1246,12 @@ export default function InventarioPage() {
         {pestanaActiva === 'registros' && (
           <>
             <div style={{ ...estiloCaja, marginBottom: '24px' }}>
-              <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#111827', fontWeight: 'bold' }}>
+              <h2 style={{ marginTop: 0, marginBottom: '14px', color: '#1F2933', fontWeight: 'bold', fontSize: '18px' }}>
                 {idProductoEditando ? 'Editar producto' : 'Registro de productos'}
               </h2>
 
               {idProductoEditando && (
-                <div style={{ marginBottom: '18px', padding: '12px 14px', borderRadius: '12px', backgroundColor: '#FEF3C7', color: '#92400E', fontWeight: 'bold' }}>
+                <div style={{ marginBottom: '18px', padding: '12px 14px', borderRadius: '12px', backgroundColor: '#EEF5FB', color: '#00487A', fontWeight: 'bold' }}>
                   Está editando un producto existente. Revise los campos y presione “Actualizar producto”.
                 </div>
               )}
@@ -1237,7 +1352,7 @@ export default function InventarioPage() {
 
             <div style={estiloCaja}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '14px', flexWrap: 'wrap' }}>
-                <h2 style={{ margin: 0, color: '#111827', fontWeight: 'bold' }}>Listado de productos</h2>
+                <h2 style={{ margin: 0, color: '#1F2933', fontWeight: 'bold', fontSize: '18px' }}>Listado de productos</h2>
                 <div>
                   <button type="button" onClick={() => setVistaProductos('kanban')} style={estiloVista(vistaProductos === 'kanban')}>Kanban</button>
                   <button type="button" onClick={() => setVistaProductos('lista')} style={estiloVista(vistaProductos === 'lista')}>Lista</button>
@@ -1255,12 +1370,12 @@ export default function InventarioPage() {
                 />
               </div>
 
-              <p style={{ color: '#6B7280', marginTop: 0 }}>
+              <p style={{ color: '#7A828A', marginTop: 0 }}>
                 Mostrando {productosFiltradosListado.length} producto(s).
               </p>
 
               {productosFiltradosListado.length === 0 ? (
-                <p style={{ color: '#6B7280' }}>No hay productos para mostrar.</p>
+                <p style={{ color: '#7A828A' }}>No hay productos para mostrar.</p>
               ) : vistaProductos === 'kanban' ? (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '18px' }}>
                   {productosFiltradosListado.map((p) => {
@@ -1268,19 +1383,19 @@ export default function InventarioPage() {
                     const stockMinimoValor = Number(p.stock_minimo ?? 10)
 
                     return (
-                      <div key={p.id_producto} style={{ backgroundColor: esStockBajo ? '#FEF2F2' : '#FFFFFF', border: esStockBajo ? '1px solid #FCA5A5' : '1px solid #E5E7EB', padding: '20px', borderRadius: '20px' }}>
+                      <div key={p.id_producto} style={{ backgroundColor: esStockBajo ? '#F5F6F7' : '#FFFFFF', border: esStockBajo ? '1px solid #A2A3A3' : '1px solid #D8DEE6', padding: '20px', borderRadius: '20px' }}>
                         <strong>{p.descripcion}</strong>
-                        <div style={{ color: '#6B7280', fontSize: '12px', marginTop: '6px' }}>
+                        <div style={{ color: '#7A828A', fontSize: '12px', marginTop: '6px' }}>
                           Código: {p.codigo || '-'}
                         </div>
 
                         {esStockBajo && (
-                          <div style={{ marginTop: '10px', padding: '8px 10px', borderRadius: '10px', backgroundColor: '#FEE2E2', color: '#B91C1C', fontWeight: 'bold', fontSize: '12px' }}>
+                          <div style={{ marginTop: '10px', padding: '8px 10px', borderRadius: '10px', backgroundColor: '#EEF5FB', color: '#00487A', fontWeight: 'bold', fontSize: '12px' }}>
                             ⚠ Stock bajo | Mínimo: {stockMinimoValor}
                           </div>
                         )}
 
-                        <div style={{ color: '#4B5563', lineHeight: 1.8, fontSize: '13px', marginTop: '12px' }}>
+                        <div style={{ color: '#5B6673', lineHeight: 1.8, fontSize: '13px', marginTop: '12px' }}>
                           <div><strong>Categoría:</strong> {p.categoria}</div>
                           <div><strong>Unidad:</strong> {p.unidad_medida}</div>
                           <div><strong>Precio compra:</strong> {formatearMoneda(p.precio_compra)}</div>
@@ -1295,17 +1410,17 @@ export default function InventarioPage() {
                           <button
                             type="button"
                             onClick={() => setMenuAccionAbierto(menuAccionAbierto === p.id_producto ? null : p.id_producto)}
-                            style={{ padding: '9px 15px', cursor: 'pointer', backgroundColor: '#ECFDF5', color: '#0F766E', border: '1px solid #A7F3D0', borderRadius: '999px', fontWeight: 'bold', fontSize: '12px', boxShadow: '0 6px 14px rgba(15,118,110,0.10)' }}
+                            style={{ padding: '9px 15px', cursor: 'pointer', backgroundColor: '#EEF5FB', color: '#005099', border: '1px solid #D8DEE6', borderRadius: '999px', fontWeight: 'bold', fontSize: '12px', boxShadow: '0 6px 14px rgba(15,118,110,0.10)' }}
                           >
                             Acciones
                           </button>
 
                           {menuAccionAbierto === p.id_producto && (
-                            <div style={{ position: 'absolute', top: '44px', left: 0, width: '170px', backgroundColor: '#FFFFFF', border: '1px solid #D9DEE5', borderRadius: '14px', boxShadow: '0 16px 34px rgba(15,23,42,0.14)', zIndex: 20, overflow: 'hidden' }}>
-                              <button type="button" onClick={() => editarProducto(p)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#374151', fontWeight: 'bold', fontSize: '12px' }}>
+                            <div style={{ position: 'absolute', top: '44px', left: 0, width: '170px', backgroundColor: '#FFFFFF', border: '1px solid #BFC7D1', borderRadius: '14px', boxShadow: '0 16px 34px rgba(15,23,42,0.14)', zIndex: 20, overflow: 'hidden' }}>
+                              <button type="button" onClick={() => editarProducto(p)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#3F4A56', fontWeight: 'bold', fontSize: '12px' }}>
                                 Editar
                               </button>
-                              <button type="button" onClick={() => eliminarProducto(p.id_producto)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#B91C1C', fontWeight: 'bold', fontSize: '12px' }}>
+                              <button type="button" onClick={() => eliminarProducto(p.id_producto)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#00487A', fontWeight: 'bold', fontSize: '12px' }}>
                                 Eliminar
                               </button>
                             </div>
@@ -1319,7 +1434,7 @@ export default function InventarioPage() {
                 <div style={estiloTablaContenedor}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#FFFFFF' }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#EAECEF' }}>
+                      <tr style={{ backgroundColor: '#F2F4F7' }}>
                         <th style={{ ...estiloTh, textAlign: 'center' as const }}>Código</th>
                         <th style={{ ...estiloTh, textAlign: 'left' as const }}>Descripción</th>
                         <th style={{ ...estiloTh, textAlign: 'center' as const }}>Categoría</th>
@@ -1338,7 +1453,7 @@ export default function InventarioPage() {
                         const esStockBajo = productoTieneStockBajo(p)
 
                         return (
-                          <tr key={p.id_producto} style={{ backgroundColor: esStockBajo ? '#FEF2F2' : '#FFFFFF' }}>
+                          <tr key={p.id_producto} style={{ backgroundColor: esStockBajo ? '#F5F6F7' : '#FFFFFF' }}>
                             <td style={{ ...estiloTd, textAlign: 'center' as const }}>{p.codigo || '-'}</td>
                             <td style={{ ...estiloTd, textAlign: 'left' as const }}>{p.descripcion}</td>
                             <td style={{ ...estiloTd, textAlign: 'center' as const }}>{p.categoria}</td>
@@ -1348,7 +1463,7 @@ export default function InventarioPage() {
                             <td style={{ ...estiloTd, textAlign: 'center' as const }}>
                               {p.stock_actual}
                               {esStockBajo && (
-                                <span style={{ color: '#B91C1C', fontWeight: 'bold', marginLeft: '8px' }}>
+                                <span style={{ color: '#00487A', fontWeight: 'bold', marginLeft: '8px' }}>
                                   ⚠ Bajo
                                 </span>
                               )}
@@ -1360,17 +1475,17 @@ export default function InventarioPage() {
                               <button
                                 type="button"
                                 onClick={() => setMenuAccionAbierto(menuAccionAbierto === p.id_producto ? null : p.id_producto)}
-                                style={{ padding: '8px 14px', cursor: 'pointer', backgroundColor: '#ECFDF5', color: '#0F766E', border: '1px solid #A7F3D0', borderRadius: '999px', fontWeight: 'bold', fontSize: '12px', boxShadow: '0 6px 14px rgba(15,118,110,0.10)' }}
+                                style={{ padding: '8px 14px', cursor: 'pointer', backgroundColor: '#EEF5FB', color: '#005099', border: '1px solid #D8DEE6', borderRadius: '999px', fontWeight: 'bold', fontSize: '12px', boxShadow: '0 6px 14px rgba(15,118,110,0.10)' }}
                               >
                                 Acciones
                               </button>
 
                               {menuAccionAbierto === p.id_producto && (
-                                <div style={{ position: 'absolute', top: '48px', right: '14px', width: '170px', backgroundColor: '#FFFFFF', border: '1px solid #D9DEE5', borderRadius: '14px', boxShadow: '0 16px 34px rgba(15,23,42,0.14)', zIndex: 20, overflow: 'hidden' }}>
-                                  <button type="button" onClick={() => editarProducto(p)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#374151', fontWeight: 'bold', fontSize: '12px' }}>
+                                <div style={{ position: 'absolute', top: '48px', right: '14px', width: '170px', backgroundColor: '#FFFFFF', border: '1px solid #BFC7D1', borderRadius: '14px', boxShadow: '0 16px 34px rgba(15,23,42,0.14)', zIndex: 20, overflow: 'hidden' }}>
+                                  <button type="button" onClick={() => editarProducto(p)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#3F4A56', fontWeight: 'bold', fontSize: '12px' }}>
                                     Editar
                                   </button>
-                                  <button type="button" onClick={() => eliminarProducto(p.id_producto)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#B91C1C', fontWeight: 'bold', fontSize: '12px' }}>
+                                  <button type="button" onClick={() => eliminarProducto(p.id_producto)} style={{ width: '100%', padding: '12px 15px', textAlign: 'left', backgroundColor: '#FFFFFF', border: 'none', cursor: 'pointer', color: '#00487A', fontWeight: 'bold', fontSize: '12px' }}>
                                     Eliminar
                                   </button>
                                 </div>
@@ -1389,7 +1504,7 @@ export default function InventarioPage() {
 
         {pestanaActiva === 'operaciones' && (
           <div style={estiloCaja}>
-            <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#111827', fontWeight: 'bold' }}>Operaciones de stock</h2>
+            <h2 style={{ marginTop: 0, marginBottom: '14px', color: '#1F2933', fontWeight: 'bold', fontSize: '18px' }}>Operaciones de stock</h2>
 
             <form onSubmit={guardarOperacionStock}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '18px' }}>
@@ -1458,7 +1573,7 @@ export default function InventarioPage() {
 
         {pestanaActiva === 'reportes' && (
           <div style={estiloCaja}>
-            <h2 style={{ marginTop: 0, marginBottom: '20px', color: '#111827', fontWeight: 'bold' }}>Reportes de inventario</h2>
+            <h2 style={{ marginTop: 0, marginBottom: '14px', color: '#1F2933', fontWeight: 'bold', fontSize: '18px' }}>Reportes de inventario</h2>
 
             <div
               style={{
@@ -1485,16 +1600,16 @@ export default function InventarioPage() {
       ...estiloBotonFormularioSecundario,
       backgroundColor:
         tipoReporte === 'productos'
-          ? '#0F766E'
+          ? '#005099'
           : '#FFFFFF',
       color:
         tipoReporte === 'productos'
           ? '#FFFFFF'
-          : '#374151',
+          : '#3F4A56',
       border:
         tipoReporte === 'productos'
-          ? '1px solid #0F766E'
-          : '1px solid #D1D5DB',
+          ? '1px solid #005099'
+          : '1px solid #BFC7D1',
       boxShadow:
         tipoReporte === 'productos'
           ? '0 6px 14px rgba(15,118,110,0.14)'
@@ -1511,16 +1626,16 @@ export default function InventarioPage() {
       ...estiloBotonFormularioSecundario,
       backgroundColor:
         tipoReporte === 'movimientos'
-          ? '#0F766E'
+          ? '#005099'
           : '#FFFFFF',
       color:
         tipoReporte === 'movimientos'
           ? '#FFFFFF'
-          : '#374151',
+          : '#3F4A56',
       border:
         tipoReporte === 'movimientos'
-          ? '1px solid #0F766E'
-          : '1px solid #D1D5DB',
+          ? '1px solid #005099'
+          : '1px solid #BFC7D1',
       boxShadow:
         tipoReporte === 'movimientos'
           ? '0 6px 14px rgba(15,118,110,0.14)'
@@ -1552,9 +1667,9 @@ export default function InventarioPage() {
                   }
                   style={{
                     ...estiloBotonFormularioSecundario,
-                    backgroundColor: '#374151',
+                    backgroundColor: '#3F4A56',
                     color: '#FFFFFF',
-                    border: '1px solid #374151',
+                    border: '1px solid #3F4A56',
                   }}
                 >
                   Imprimir / PDF
@@ -1606,8 +1721,8 @@ export default function InventarioPage() {
                       style={{
                         ...estiloBotonFormularioPrimario,
                         width: '100%',
-                        backgroundColor: mostrarSoloAlertas ? '#991B1B' : '#DC2626',
-                        border: `1px solid ${mostrarSoloAlertas ? '#991B1B' : '#DC2626'}`,
+                        backgroundColor: mostrarSoloAlertas ? '#00487A' : '#005099',
+                        border: `1px solid ${mostrarSoloAlertas ? '#00487A' : '#005099'}`,
                         boxShadow: '0 6px 14px rgba(220,38,38,0.14)',
                       }}
                     >
@@ -1616,7 +1731,7 @@ export default function InventarioPage() {
                   </div>
                 </div>
 
-                <p style={{ color: '#6B7280', marginBottom: '14px' }}>
+                <p style={{ color: '#7A828A', marginBottom: '14px' }}>
                   Mostrando {productosFiltradosReporte.length} producto(s)
                   {mostrarSoloAlertas ? ' con alerta de stock bajo.' : '.'}
                 </p>
@@ -1624,7 +1739,7 @@ export default function InventarioPage() {
                 <div style={estiloTablaContenedor}>
                   <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#EAECEF' }}>
+                      <tr style={{ backgroundColor: '#F2F4F7' }}>
                         <th style={{ ...estiloTh, textAlign: 'center' as const }}>Código</th>
                         <th style={{ ...estiloTh, textAlign: 'left' as const }}>Descripción</th>
                         <th style={{ ...estiloTh, textAlign: 'center' as const }}>Categoría</th>
@@ -1640,7 +1755,7 @@ export default function InventarioPage() {
                     <tbody>
                       {productosFiltradosReporte.length === 0 ? (
                         <tr>
-                          <td colSpan={10} style={{ padding: '18px', textAlign: 'center', color: '#6B7280' }}>
+                          <td colSpan={10} style={{ padding: '18px', textAlign: 'center', color: '#7A828A' }}>
                             No hay productos para mostrar.
                           </td>
                         </tr>
@@ -1649,7 +1764,7 @@ export default function InventarioPage() {
                           const esStockBajo = productoTieneStockBajo(p)
 
                           return (
-                            <tr key={p.id_producto} style={{ backgroundColor: esStockBajo ? '#FEF2F2' : '#FFFFFF' }}>
+                            <tr key={p.id_producto} style={{ backgroundColor: esStockBajo ? '#F5F6F7' : '#FFFFFF' }}>
                               <td style={{ ...estiloTd, textAlign: 'center' as const }}>{p.codigo || '-'}</td>
                               <td style={{ ...estiloTd, textAlign: 'left' as const }}>{p.descripcion}</td>
                               <td style={{ ...estiloTd, textAlign: 'center' as const }}>{p.categoria}</td>
@@ -1659,7 +1774,7 @@ export default function InventarioPage() {
                               <td style={{ ...estiloTd, textAlign: 'center' as const }}>
                                 {p.stock_actual}
                                 {esStockBajo && (
-                                  <span style={{ color: '#B91C1C', fontWeight: 'bold', marginLeft: '8px' }}>
+                                  <span style={{ color: '#00487A', fontWeight: 'bold', marginLeft: '8px' }}>
                                     ⚠ Bajo
                                   </span>
                                 )}
@@ -1711,14 +1826,14 @@ export default function InventarioPage() {
                   </div>
                 </div>
 
-                <p style={{ color: '#6B7280', marginBottom: '14px' }}>
+                <p style={{ color: '#7A828A', marginBottom: '14px' }}>
                   Mostrando {movimientosFiltradosReporte.length} movimiento(s).
                 </p>
 
                 <div style={estiloTablaContenedor}>
                   <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: 0 }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#EAECEF' }}>
+                      <tr style={{ backgroundColor: '#F2F4F7' }}>
                         <th style={{ ...estiloTh, textAlign: 'center' as const }}>Fecha</th>
                         <th style={{ ...estiloTh, textAlign: 'center' as const }}>Código</th>
                         <th style={{ ...estiloTh, textAlign: 'left' as const }}>Producto</th>
@@ -1732,7 +1847,7 @@ export default function InventarioPage() {
                     <tbody>
                       {movimientosFiltradosReporte.length === 0 ? (
                         <tr>
-                          <td colSpan={8} style={{ padding: '18px', textAlign: 'center', color: '#6B7280' }}>
+                          <td colSpan={8} style={{ padding: '18px', textAlign: 'center', color: '#7A828A' }}>
                             No hay movimientos para mostrar.
                           </td>
                         </tr>
