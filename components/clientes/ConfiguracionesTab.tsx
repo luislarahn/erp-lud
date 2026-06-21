@@ -379,20 +379,22 @@ export default function ConfiguracionesTab() {
 
   if (vista === 'autorizacionFiscal') {
     return (
-      <div className="text-black">
+      <div className="text-[#1F2933]">
         <button
           type="button"
           onClick={() => setVista('menu')}
-          className="mb-5 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+          className="mb-5 rounded-[10px] border border-[#BFC7D1] bg-white px-[14px] py-[10px] text-[12px] font-bold text-[#3F4A56] shadow-sm hover:bg-[#F5F6F7]"
         >
           ← Volver a Configuraciones
         </button>
 
-        <h2 className="text-2xl font-bold mb-4 text-black">Autorización Fiscal</h2>
+        <h2 className="mb-[14px] mt-0 text-[18px] font-bold text-[#1F2933]">
+          Autorización Fiscal
+        </h2>
 
-        <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 shadow-sm">
-          <div className="mb-5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-            <h3 className="text-xl font-bold text-black">
+        <div className="rounded-[10px] border border-[#BFC7D1] bg-white p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)]">
+          <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <h3 className="m-0 text-[18px] font-bold text-[#1F2933]">
               {idEditando ? 'Modificar autorización fiscal' : 'Nueva autorización fiscal'}
             </h3>
 
@@ -400,135 +402,165 @@ export default function ConfiguracionesTab() {
               <button
                 type="button"
                 onClick={limpiarFormulario}
-                className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                className="rounded-[10px] border border-[#BFC7D1] bg-white px-[14px] py-[10px] text-[12px] font-bold text-[#3F4A56] hover:bg-[#F5F6F7]"
               >
                 Cancelar edición
               </button>
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block mb-1 font-medium text-black">Código de Autorización CAI</label>
-              <input
-                type="text"
-                name="codigo_autorizacion"
-                value={formulario.codigo_autorizacion}
-                onChange={manejarCambio}
-                placeholder="Ejemplo: 53074B-A562AF-354E95-6BAF46-90A598-62"
-                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-              />
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 xl:grid-cols-2">
+              <div className="flex items-center gap-3">
+                <label className="min-w-[145px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                  Código CAI
+                </label>
+                <input
+                  type="text"
+                  name="codigo_autorizacion"
+                  value={formulario.codigo_autorizacion}
+                  onChange={manejarCambio}
+                  placeholder="Ejemplo: 53074B-A562AF-354E95-6BAF46-90A598-62"
+                  className="w-full max-w-[520px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="min-w-[145px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                  Nombre secuencia
+                </label>
+                <input
+                  type="text"
+                  name="nombre_secuencia"
+                  value={formulario.nombre_secuencia}
+                  onChange={manejarCambio}
+                  placeholder="Ejemplo: Facturas 01-500"
+                  className="w-full max-w-[420px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block mb-1 font-medium text-black">Tipo de documento</label>
-              <select
-                name="tipo_documento"
-                value={formulario.tipo_documento}
-                onChange={manejarCambio}
-                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black"
-              >
-                <option value="factura">Factura</option>
-                <option value="nota_credito">Nota de crédito</option>
-              </select>
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className="flex items-center gap-3">
+                <label className="min-w-[86px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                  Documento
+                </label>
+                <select
+                  name="tipo_documento"
+                  value={formulario.tipo_documento}
+                  onChange={manejarCambio}
+                  className="w-full max-w-[170px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none"
+                >
+                  <option value="factura">Factura</option>
+                  <option value="nota_credito">Nota de crédito</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="min-w-[86px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                  Prefijo
+                </label>
+                <input
+                  type="text"
+                  name="prefijo"
+                  value={formulario.prefijo}
+                  onChange={manejarCambio}
+                  placeholder="000-001-01-"
+                  className="w-full max-w-[180px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="min-w-[86px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                  Inicio
+                </label>
+                <input
+                  type="date"
+                  name="fecha_inicio"
+                  value={formulario.fecha_inicio}
+                  onChange={manejarCambio}
+                  className="w-[145px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="min-w-[86px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                  Expiración
+                </label>
+                <input
+                  type="date"
+                  name="fecha_expiracion"
+                  value={formulario.fecha_expiracion}
+                  onChange={manejarCambio}
+                  className="w-[145px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block mb-1 font-medium text-black">Nombre de la secuencia</label>
-              <input
-                type="text"
-                name="nombre_secuencia"
-                value={formulario.nombre_secuencia}
-                onChange={manejarCambio}
-                placeholder="Ejemplo: Facturas 01-500"
-                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-              />
+            <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2 xl:grid-cols-4">
+              <div className="flex items-center gap-3">
+                <label className="min-w-[86px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                  Valor inicial
+                </label>
+                <input
+                  type="number"
+                  name="valor_inicial"
+                  value={formulario.valor_inicial}
+                  onChange={manejarCambio}
+                  placeholder="1"
+                  className="w-[115px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="min-w-[86px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                  Valor máximo
+                </label>
+                <input
+                  type="number"
+                  name="valor_maximo"
+                  value={formulario.valor_maximo}
+                  onChange={manejarCambio}
+                  placeholder="500"
+                  className="w-[115px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="min-w-[86px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                  Relleno
+                </label>
+                <input
+                  type="number"
+                  name="relleno"
+                  value={formulario.relleno}
+                  onChange={manejarCambio}
+                  placeholder="8"
+                  className="w-[90px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="min-w-[86px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                  Próximo
+                </label>
+                <input
+                  type="number"
+                  name="proximo_numero"
+                  value={formulario.proximo_numero}
+                  onChange={manejarCambio}
+                  placeholder="8"
+                  className="w-[115px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                />
+              </div>
             </div>
 
-            <div>
-              <label className="block mb-1 font-medium text-black">Prefijo</label>
-              <input
-                type="text"
-                name="prefijo"
-                value={formulario.prefijo}
-                onChange={manejarCambio}
-                placeholder="Ejemplo: 000-001-01-"
-                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-              />
-            </div>
+            <div className="flex items-center gap-3 pt-2">
+              <label className="min-w-[145px] whitespace-nowrap text-[13px] font-semibold text-[#3F4A56]">
+                Estado
+              </label>
 
-            <div>
-              <label className="block mb-1 font-medium text-black">Valor inicial</label>
-              <input
-                type="number"
-                name="valor_inicial"
-                value={formulario.valor_inicial}
-                onChange={manejarCambio}
-                placeholder="1"
-                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium text-black">Valor máximo</label>
-              <input
-                type="number"
-                name="valor_maximo"
-                value={formulario.valor_maximo}
-                onChange={manejarCambio}
-                placeholder="500"
-                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium text-black">Relleno</label>
-              <input
-                type="number"
-                name="relleno"
-                value={formulario.relleno}
-                onChange={manejarCambio}
-                placeholder="8"
-                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium text-black">Próximo número a usar</label>
-              <input
-                type="number"
-                name="proximo_numero"
-                value={formulario.proximo_numero}
-                onChange={manejarCambio}
-                placeholder="8"
-                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium text-black">Fecha de inicio</label>
-              <input
-                type="date"
-                name="fecha_inicio"
-                value={formulario.fecha_inicio}
-                onChange={manejarCambio}
-                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black"
-              />
-            </div>
-
-            <div>
-              <label className="block mb-1 font-medium text-black">Fecha de expiración</label>
-              <input
-                type="date"
-                name="fecha_expiracion"
-                value={formulario.fecha_expiracion}
-                onChange={manejarCambio}
-                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black"
-              />
-            </div>
-
-            <div className="md:col-span-2">
-              <label className="inline-flex items-center gap-2 text-black">
+              <label className="inline-flex items-center gap-2 rounded-[10px] border border-[#BFC7D1] bg-[#F5F6F7] px-[12px] py-[8px] text-[13px] font-semibold text-[#3F4A56]">
                 <input
                   type="checkbox"
                   checked={formulario.activo}
@@ -540,7 +572,7 @@ export default function ConfiguracionesTab() {
           </div>
 
           {mensaje && (
-            <div className="mt-6 rounded-xl border border-gray-300 bg-gray-100 px-4 py-3 text-sm text-black shadow-sm">
+            <div className="mt-6 rounded-[10px] border border-[#BFC7D1] bg-[#F5F6F7] px-4 py-3 text-[13px] text-[#3F4A56] shadow-sm">
               {mensaje}
             </div>
           )}
@@ -550,7 +582,7 @@ export default function ConfiguracionesTab() {
               <button
                 type="button"
                 onClick={limpiarFormulario}
-                className="px-6 py-3 rounded-lg border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100"
+                className="rounded-[10px] border border-[#BFC7D1] bg-white px-[14px] py-[10px] text-[12px] font-bold text-[#3F4A56] hover:bg-[#F5F6F7]"
               >
                 Cancelar
               </button>
@@ -560,7 +592,7 @@ export default function ConfiguracionesTab() {
               type="button"
               onClick={guardarAutorizacionFiscal}
               disabled={guardando}
-              className="px-6 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50"
+              className="rounded-[10px] border border-[#005099] bg-[#005099] px-[14px] py-[10px] text-[12px] font-bold leading-[1.2] text-white shadow-[0_6px_14px_rgba(15,23,42,0.10)] disabled:opacity-50"
             >
               {guardando
                 ? idEditando
@@ -573,46 +605,49 @@ export default function ConfiguracionesTab() {
           </div>
         </div>
 
-        <div className="mt-8 rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
-          <h3 className="mb-4 text-xl font-bold text-black">Autorizaciones fiscales registradas</h3>
+        <div className="mt-8 rounded-[10px] border border-[#BFC7D1] bg-white p-5 shadow-[0_4px_12px_rgba(15,23,42,0.06)]">
+          <h3 className="mb-[14px] mt-0 text-[18px] font-bold text-[#1F2933]">
+            Autorizaciones fiscales registradas
+          </h3>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-200">
-            <table className="w-full border-collapse text-sm">
+          <div className="overflow-x-auto rounded-[10px] border border-[#BFC7D1] bg-white">
+            <table className="w-full border-collapse text-[12px]">
               <thead>
-                <tr className="bg-gray-100 text-left text-black">
-                  <th className="border border-gray-200 p-3">Nombre</th>
-                  <th className="border border-gray-200 p-3">Documento</th>
-                  <th className="border border-gray-200 p-3">Prefijo</th>
-                  <th className="border border-gray-200 p-3">Rango</th>
-                  <th className="border border-gray-200 p-3">Próximo</th>
-                  <th className="border border-gray-200 p-3">Vigencia</th>
-                  <th className="border border-gray-200 p-3">Estado</th>
-                  <th className="border border-gray-200 p-3 text-center">Acciones</th>
+                <tr className="bg-[#F3F6F8] text-left text-[#3F4A56]">
+                  <th className="border border-[#D8DEE6] p-3">Nombre</th>
+                  <th className="border border-[#D8DEE6] p-3">Documento</th>
+                  <th className="border border-[#D8DEE6] p-3">Prefijo</th>
+                  <th className="border border-[#D8DEE6] p-3">Rango</th>
+                  <th className="border border-[#D8DEE6] p-3">Próximo</th>
+                  <th className="border border-[#D8DEE6] p-3">Vigencia</th>
+                  <th className="border border-[#D8DEE6] p-3">Estado</th>
+                  <th className="border border-[#D8DEE6] p-3 text-center">Acciones</th>
                 </tr>
               </thead>
+
               <tbody>
                 {autorizaciones.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="border border-gray-200 p-4 text-center text-gray-500">
+                    <td colSpan={8} className="border border-[#D8DEE6] p-4 text-center text-gray-500">
                       No hay autorizaciones fiscales registradas.
                     </td>
                   </tr>
                 ) : (
                   autorizaciones.map((autorizacion) => (
-                    <tr key={autorizacion.id_autorizacion} className="text-black">
-                      <td className="border border-gray-200 p-3">{autorizacion.nombre_secuencia}</td>
-                      <td className="border border-gray-200 p-3">
+                    <tr key={autorizacion.id_autorizacion} className="text-[#1F2933]">
+                      <td className="border border-[#D8DEE6] p-3">{autorizacion.nombre_secuencia}</td>
+                      <td className="border border-[#D8DEE6] p-3">
                         {nombreTipoDocumento(autorizacion.tipo_documento)}
                       </td>
-                      <td className="border border-gray-200 p-3">{autorizacion.prefijo}</td>
-                      <td className="border border-gray-200 p-3">
+                      <td className="border border-[#D8DEE6] p-3">{autorizacion.prefijo}</td>
+                      <td className="border border-[#D8DEE6] p-3">
                         {autorizacion.valor_inicial} - {autorizacion.valor_maximo}
                       </td>
-                      <td className="border border-gray-200 p-3">{autorizacion.proximo_numero}</td>
-                      <td className="border border-gray-200 p-3">
+                      <td className="border border-[#D8DEE6] p-3">{autorizacion.proximo_numero}</td>
+                      <td className="border border-[#D8DEE6] p-3">
                         {formatearFecha(autorizacion.fecha_inicio)} / {formatearFecha(autorizacion.fecha_expiracion)}
                       </td>
-                      <td className="border border-gray-200 p-3">
+                      <td className="border border-[#D8DEE6] p-3">
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${
                             autorizacion.activo
@@ -623,7 +658,7 @@ export default function ConfiguracionesTab() {
                           {autorizacion.activo ? 'Activo' : 'Inactivo'}
                         </span>
                       </td>
-                      <td className="border border-gray-200 p-3 text-center">
+                      <td className="border border-[#D8DEE6] p-3 text-center">
                         <select
                           defaultValue=""
                           onChange={(e) => {
@@ -638,7 +673,7 @@ export default function ConfiguracionesTab() {
                               cambiarEstadoAutorizacion(autorizacion)
                             }
                           }}
-                          className="rounded-lg bg-white border border-gray-300 px-2 py-1 text-black"
+                          className="rounded-[10px] border border-[#BFC7D1] bg-white px-2 py-1 text-[12px] text-[#1F2933]"
                         >
                           <option value="" disabled hidden>
                             Acción

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
 import { supabase } from '../../lib/supabase'
 
-type TipoReporte = 'ventas' | 'clientes' | 'recibos' | 'notasCredito'
+type TipoReporte = 'ventas' | 'cotizaciones' | 'proformas' | 'clientes' | 'recibos' | 'notasCredito'
 
 type Factura = {
   id_factura: number
@@ -17,6 +17,32 @@ type Factura = {
   total_factura: number
   estado: string
   descripcion_anulacion: string | null
+}
+
+type Cotizacion = {
+  id_cotizacion: number
+  id_cliente: number | null
+  numero_cotizacion: string
+  nombre_cliente: string
+  fecha_cotizacion: string
+  subtotal: number
+  impuesto_total: number
+  total_cotizacion: number
+  estado: string
+  observaciones: string | null
+}
+
+type Proforma = {
+  id_proforma: number
+  id_cliente: number | null
+  numero_proforma: string
+  nombre_cliente: string
+  fecha_proforma: string
+  subtotal: number
+  impuesto_total: number
+  total_proforma: number
+  estado: string
+  observaciones: string | null
 }
 
 type Recibo = {
@@ -114,6 +140,14 @@ function abrirFactura(idFactura: number) {
   window.open(`/clientes/factura/${idFactura}`, '_blank')
 }
 
+function abrirCotizacion(idCotizacion: number) {
+  window.open(`/clientes/cotizacion/${idCotizacion}`, '_blank')
+}
+
+function abrirProforma(idProforma: number) {
+  window.open(`/clientes/proforma/${idProforma}`, '_blank')
+}
+
 function abrirRecibo(idRecibo: number) {
   window.open(`/clientes/recibo/${idRecibo}`, '_blank')
 }
@@ -135,6 +169,8 @@ export default function ReportesTab() {
   const [tipoReporte, setTipoReporte] = useState<TipoReporte>('ventas')
 
   const [facturas, setFacturas] = useState<Factura[]>([])
+  const [cotizaciones, setCotizaciones] = useState<Cotizacion[]>([])
+  const [proformas, setProformas] = useState<Proforma[]>([])
   const [recibos, setRecibos] = useState<Recibo[]>([])
   const [notasCredito, setNotasCredito] = useState<NotaCredito[]>([])
   const [clientes, setClientes] = useState<Cliente[]>([])
@@ -144,6 +180,8 @@ export default function ReportesTab() {
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
   const [busquedaVentas, setBusquedaVentas] = useState('')
+  const [busquedaCotizaciones, setBusquedaCotizaciones] = useState('')
+  const [busquedaProformas, setBusquedaProformas] = useState('')
   const [busquedaRecibos, setBusquedaRecibos] = useState('')
   const [busquedaNotasCredito, setBusquedaNotasCredito] = useState('')
   const [busquedaCliente, setBusquedaCliente] = useState('')
@@ -172,6 +210,10 @@ export default function ReportesTab() {
   useEffect(() => {
     if (tipoReporte === 'ventas') {
       cargarFacturas()
+    } else if (tipoReporte === 'cotizaciones') {
+      cargarCotizaciones()
+    } else if (tipoReporte === 'proformas') {
+      cargarProformas()
     } else if (tipoReporte === 'clientes') {
       cargarReporteClientes()
     } else if (tipoReporte === 'recibos') {
@@ -209,6 +251,73 @@ export default function ReportesTab() {
     } catch (error: any) {
       console.log('Error al cargar facturas:', error)
       setMensaje(`Error al cargar facturas: ${error?.message || 'Error inesperado.'}`)
+    } finally {
+      setCargando(false)
+    }
+  }
+
+
+  async function cargarCotizaciones() {
+    setCargando(true)
+    setMensaje('')
+
+    try {
+      let query = supabase
+        .from('cotizaciones')
+        .select(
+          'id_cotizacion, id_cliente, numero_cotizacion, nombre_cliente, fecha_cotizacion, subtotal, impuesto_total, total_cotizacion, estado, observaciones'
+        )
+        .order('id_cotizacion', { ascending: false })
+
+      if (fechaDesde) {
+        query = query.gte('fecha_cotizacion', fechaDesde)
+      }
+
+      if (fechaHasta) {
+        query = query.lte('fecha_cotizacion', fechaHasta)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      setCotizaciones(data || [])
+    } catch (error: any) {
+      console.log('Error al cargar cotizaciones:', error)
+      setMensaje(`Error al cargar cotizaciones: ${error?.message || 'Error inesperado.'}`)
+    } finally {
+      setCargando(false)
+    }
+  }
+
+  async function cargarProformas() {
+    setCargando(true)
+    setMensaje('')
+
+    try {
+      let query = supabase
+        .from('proformas')
+        .select(
+          'id_proforma, id_cliente, numero_proforma, nombre_cliente, fecha_proforma, subtotal, impuesto_total, total_proforma, estado, observaciones'
+        )
+        .order('id_proforma', { ascending: false })
+
+      if (fechaDesde) {
+        query = query.gte('fecha_proforma', fechaDesde)
+      }
+
+      if (fechaHasta) {
+        query = query.lte('fecha_proforma', fechaHasta)
+      }
+
+      const { data, error } = await query
+
+      if (error) throw error
+
+      setProformas(data || [])
+    } catch (error: any) {
+      console.log('Error al cargar proformas:', error)
+      setMensaje(`Error al cargar proformas: ${error?.message || 'Error inesperado.'}`)
     } finally {
       setCargando(false)
     }
@@ -351,6 +460,29 @@ export default function ReportesTab() {
 
     setTimeout(() => {
       cargarFacturas()
+    }, 0)
+  }
+
+
+  function limpiarFiltroCotizaciones() {
+    setFechaDesde('')
+    setFechaHasta('')
+    setBusquedaCotizaciones('')
+    setFiltroEstado('Todos')
+
+    setTimeout(() => {
+      cargarCotizaciones()
+    }, 0)
+  }
+
+  function limpiarFiltroProformas() {
+    setFechaDesde('')
+    setFechaHasta('')
+    setBusquedaProformas('')
+    setFiltroEstado('Todos')
+
+    setTimeout(() => {
+      cargarProformas()
     }, 0)
   }
 
@@ -649,6 +781,37 @@ export default function ReportesTab() {
     })
   }, [facturas, busquedaVentas, filtroEstado])
 
+
+  const cotizacionesFiltradas = useMemo(() => {
+    const texto = normalizarTexto(busquedaCotizaciones)
+
+    return cotizaciones.filter((cotizacion) => {
+      const coincideEstado = cumpleFiltroEstado(cotizacion.estado)
+      const coincideTexto =
+        !texto ||
+        normalizarTexto(cotizacion.nombre_cliente).includes(texto) ||
+        normalizarTexto(cotizacion.numero_cotizacion).includes(texto) ||
+        normalizarTexto(cotizacion.observaciones).includes(texto)
+
+      return coincideEstado && coincideTexto
+    })
+  }, [cotizaciones, busquedaCotizaciones, filtroEstado])
+
+  const proformasFiltradas = useMemo(() => {
+    const texto = normalizarTexto(busquedaProformas)
+
+    return proformas.filter((proforma) => {
+      const coincideEstado = cumpleFiltroEstado(proforma.estado)
+      const coincideTexto =
+        !texto ||
+        normalizarTexto(proforma.nombre_cliente).includes(texto) ||
+        normalizarTexto(proforma.numero_proforma).includes(texto) ||
+        normalizarTexto(proforma.observaciones).includes(texto)
+
+      return coincideEstado && coincideTexto
+    })
+  }, [proformas, busquedaProformas, filtroEstado])
+
   const recibosFiltrados = useMemo(() => {
     const texto = normalizarTexto(busquedaRecibos)
 
@@ -719,6 +882,57 @@ export default function ReportesTab() {
       ticketPromedio,
     }
   }, [facturasFiltradas])
+
+
+  const resumenCotizaciones = useMemo(() => {
+    const totalCotizaciones = cotizacionesFiltradas.length
+    const subtotal = cotizacionesFiltradas.reduce(
+      (acc, cotizacion) => acc + Number(cotizacion.subtotal || 0),
+      0
+    )
+    const impuesto = cotizacionesFiltradas.reduce(
+      (acc, cotizacion) => acc + Number(cotizacion.impuesto_total || 0),
+      0
+    )
+    const total = cotizacionesFiltradas.reduce(
+      (acc, cotizacion) => acc + Number(cotizacion.total_cotizacion || 0),
+      0
+    )
+    const promedio = totalCotizaciones > 0 ? total / totalCotizaciones : 0
+
+    return {
+      totalCotizaciones,
+      subtotal,
+      impuesto,
+      total,
+      promedio,
+    }
+  }, [cotizacionesFiltradas])
+
+  const resumenProformas = useMemo(() => {
+    const totalProformas = proformasFiltradas.length
+    const subtotal = proformasFiltradas.reduce(
+      (acc, proforma) => acc + Number(proforma.subtotal || 0),
+      0
+    )
+    const impuesto = proformasFiltradas.reduce(
+      (acc, proforma) => acc + Number(proforma.impuesto_total || 0),
+      0
+    )
+    const total = proformasFiltradas.reduce(
+      (acc, proforma) => acc + Number(proforma.total_proforma || 0),
+      0
+    )
+    const promedio = totalProformas > 0 ? total / totalProformas : 0
+
+    return {
+      totalProformas,
+      subtotal,
+      impuesto,
+      total,
+      promedio,
+    }
+  }, [proformasFiltradas])
 
   const resumenRecibos = useMemo(() => {
     const totalRecibos = recibosFiltrados.length
@@ -892,6 +1106,61 @@ export default function ReportesTab() {
           numeroMoneda(factura.total_factura),
           factura.estado,
           factura.descripcion_anulacion || '-',
+        ]),
+      }
+    }
+
+
+    if (tipoReporte === 'cotizaciones') {
+      return {
+        titulo: `Reporte de Cotizaciones - ${periodo}`,
+        nombreArchivo: 'reporte_cotizaciones',
+        encabezados: [
+          'Número de Cotización',
+          'Cliente',
+          'Fecha',
+          'Subtotal',
+          'Impuesto',
+          'Total',
+          'Estado',
+          'Observaciones',
+        ],
+        filas: cotizacionesFiltradas.map((cotizacion) => [
+          cotizacion.numero_cotizacion,
+          cotizacion.nombre_cliente,
+          formatearFecha(cotizacion.fecha_cotizacion),
+          numeroMoneda(cotizacion.subtotal),
+          numeroMoneda(cotizacion.impuesto_total),
+          numeroMoneda(cotizacion.total_cotizacion),
+          cotizacion.estado,
+          cotizacion.observaciones || '-',
+        ]),
+      }
+    }
+
+    if (tipoReporte === 'proformas') {
+      return {
+        titulo: `Reporte de Proformas - ${periodo}`,
+        nombreArchivo: 'reporte_proformas',
+        encabezados: [
+          'Número de Proforma',
+          'Cliente',
+          'Fecha',
+          'Subtotal',
+          'Impuesto',
+          'Total',
+          'Estado',
+          'Observaciones',
+        ],
+        filas: proformasFiltradas.map((proforma) => [
+          proforma.numero_proforma,
+          proforma.nombre_cliente,
+          formatearFecha(proforma.fecha_proforma),
+          numeroMoneda(proforma.subtotal),
+          numeroMoneda(proforma.impuesto_total),
+          numeroMoneda(proforma.total_proforma),
+          proforma.estado,
+          proforma.observaciones || '-',
         ]),
       }
     }
@@ -1285,6 +1554,8 @@ export default function ReportesTab() {
                 setTipoReporte(e.target.value as TipoReporte)
                 setMensaje('')
                 setBusquedaVentas('')
+                setBusquedaCotizaciones('')
+                setBusquedaProformas('')
                 setBusquedaRecibos('')
                 setBusquedaNotasCredito('')
                 setBusquedaCliente('')
@@ -1293,9 +1564,12 @@ export default function ReportesTab() {
               className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black"
             >
               <option value="ventas">Reporte de Ventas</option>
-              <option value="clientes">Reporte de Clientes</option>
+              <option value="cotizaciones">Reporte de Cotizaciones</option>
+              <option value="proformas">Reporte de Proformas</option>
+              
               <option value="recibos">Reporte de Recibos</option>
               <option value="notasCredito">Reporte de Notas de Crédito</option>
+              <option value="clientes">Reporte de Clientes</option>
             </select>
           </div>
 
