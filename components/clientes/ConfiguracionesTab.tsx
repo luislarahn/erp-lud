@@ -421,7 +421,7 @@ export default function ConfiguracionesTab() {
                   value={formulario.codigo_autorizacion}
                   onChange={manejarCambio}
                   placeholder="Ejemplo: 53074B-A562AF-354E95-6BAF46-90A598-62"
-                  className="w-full max-w-[520px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                  className="w-full max-w-[445px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
                 />
               </div>
 
@@ -449,7 +449,7 @@ export default function ConfiguracionesTab() {
                   name="tipo_documento"
                   value={formulario.tipo_documento}
                   onChange={manejarCambio}
-                  className="w-full max-w-[170px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none"
+                  className="w-[170px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none"
                 >
                   <option value="factura">Factura</option>
                   <option value="nota_credito">Nota de crédito</option>
@@ -466,7 +466,7 @@ export default function ConfiguracionesTab() {
                   value={formulario.prefijo}
                   onChange={manejarCambio}
                   placeholder="000-001-01-"
-                  className="w-full max-w-[180px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                  className="w-[193px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
                 />
               </div>
 
@@ -508,7 +508,7 @@ export default function ConfiguracionesTab() {
                   value={formulario.valor_inicial}
                   onChange={manejarCambio}
                   placeholder="1"
-                  className="w-[115px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                  className="w-[170px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
                 />
               </div>
 
@@ -522,7 +522,7 @@ export default function ConfiguracionesTab() {
                   value={formulario.valor_maximo}
                   onChange={manejarCambio}
                   placeholder="500"
-                  className="w-[115px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                  className="w-[193px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
                 />
               </div>
 
@@ -536,7 +536,7 @@ export default function ConfiguracionesTab() {
                   value={formulario.relleno}
                   onChange={manejarCambio}
                   placeholder="8"
-                  className="w-[90px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                  className="w-[145px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
                 />
               </div>
 
@@ -549,8 +549,8 @@ export default function ConfiguracionesTab() {
                   name="proximo_numero"
                   value={formulario.proximo_numero}
                   onChange={manejarCambio}
-                  placeholder="8"
-                  className="w-[115px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
+                  placeholder="1"
+                  className="w-[145px] rounded-[10px] border border-[#BFC7D1] bg-white px-[11px] py-[9px] text-[13px] text-[#1F2933] outline-none placeholder:text-gray-500"
                 />
               </div>
             </div>
