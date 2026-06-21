@@ -85,7 +85,10 @@ function numero(valor: number | string | null | undefined) {
 }
 
 function moneda(valor: number | string | null | undefined) {
-  return `L ${numero(valor).toFixed(2)}`
+  return `L ${numero(valor).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`
 }
 
 function formatearFecha(fecha: string | null | undefined) {
@@ -181,20 +184,33 @@ function numeroALetrasEntero(numero: number): string {
   return resto === 0 ? textoMillones : `${textoMillones} ${numeroALetrasEntero(resto)}`
 }
 
-function totalEnLetras(valor: number | string | null | undefined) {
-  const total = numero(valor)
-  const entero = Math.floor(total)
-  const centavos = Math.round((total - entero) * 100)
+function totalEnLetras(total: number | string | null | undefined) {
+  const valor = numero(total)
+  const enteros = Math.floor(valor)
+  const centavos = Math.round((valor - enteros) * 100)
 
-  return `${numeroALetrasEntero(entero)} HNL Con ${String(centavos).padStart(2, '0')} /100`
+  return `${numeroALetrasEntero(enteros)} Lempiras con ${String(centavos).padStart(2, '0')}/100`
 }
 
-export default function FacturaImprimiblePage() {
+function obtenerMensajeError(error: any) {
+  if (!error) return 'Ocurrió un error inesperado.'
+  if (typeof error === 'string') return error
+  if (error.message) return error.message
+  if (error.details) return error.details
+  if (error.hint) return error.hint
+
+  try {
+    return JSON.stringify(error)
+  } catch {
+    return 'Ocurrió un error inesperado.'
+  }
+}
+
+export default function FacturaPage() {
   const params = useParams()
   const router = useRouter()
 
-  const idParam = Array.isArray(params?.id) ? params.id[0] : params?.id
-  const idFactura = Number(idParam)
+  const idFactura = Number(params?.id)
 
   const [factura, setFactura] = useState<Factura | null>(null)
   const [detalle, setDetalle] = useState<DetalleFactura[]>([])
@@ -205,13 +221,9 @@ export default function FacturaImprimiblePage() {
   const [mensaje, setMensaje] = useState('')
 
   useEffect(() => {
-    if (!idFactura || Number.isNaN(idFactura)) {
-      setMensaje('El ID de la factura no es válido.')
-      setCargando(false)
-      return
+    if (idFactura) {
+      cargarFactura()
     }
-
-    cargarFactura()
   }, [idFactura])
 
   async function cargarFactura() {
@@ -273,7 +285,7 @@ export default function FacturaImprimiblePage() {
       }
     } catch (error: any) {
       console.log('Error al cargar factura:', error)
-      setMensaje(error?.message || 'No se pudo cargar la factura.')
+      setMensaje(obtenerMensajeError(error))
     } finally {
       setCargando(false)
     }
@@ -289,33 +301,61 @@ export default function FacturaImprimiblePage() {
 
   if (cargando) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white p-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="rounded-2xl border border-slate-700 bg-slate-900 p-6">
-            Cargando factura...
-          </div>
-        </div>
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#F2F4F7',
+          padding: '40px',
+          fontFamily: 'Arial, sans-serif',
+          color: '#1F2933',
+        }}
+      >
+        Cargando factura...
       </div>
     )
   }
 
   if (mensaje) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white p-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="rounded-2xl border border-red-700 bg-slate-900 p-6">
-            {mensaje}
-          </div>
-
-          <div className="mt-4 no-print">
-            <button
-              onClick={() => router.push('/clientes')}
-              className="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600"
-            >
-              Volver a Clientes
-            </button>
-          </div>
+      <div
+        style={{
+          minHeight: '100vh',
+          backgroundColor: '#020617',
+          padding: '40px',
+          fontFamily: 'Arial, sans-serif',
+          color: '#FFFFFF',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '900px',
+            margin: '0 auto',
+            border: '1px solid #DC2626',
+            borderRadius: '14px',
+            padding: '22px',
+            backgroundColor: '#0F172A',
+            color: '#FFFFFF',
+          }}
+        >
+          {mensaje}
         </div>
+
+        <button
+          type="button"
+          onClick={() => router.push('/clientes')}
+          style={{
+            marginTop: '16px',
+            padding: '10px 16px',
+            borderRadius: '8px',
+            border: 'none',
+            backgroundColor: '#334155',
+            color: '#FFFFFF',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          Volver a Clientes
+        </button>
       </div>
     )
   }
@@ -334,267 +374,507 @@ export default function FacturaImprimiblePage() {
     : ''
 
   return (
-    <div className="min-h-screen bg-slate-950 p-4">
-      <style jsx global>{`
-        @media print {
-          html,
-          body {
-            background: white !important;
-            margin: 0 !important;
-            padding: 0 !important;
-          }
+    <div
+      style={{
+        minHeight: '100vh',
+        backgroundColor: '#F2F4F7',
+        padding: '24px',
+        fontFamily: 'Arial, sans-serif',
+        color: '#1F2933',
+      }}
+    >
+      <style>
+        {`
+          @media print {
+            body {
+              background: white !important;
+            }
 
-          .no-print {
-            display: none !important;
-          }
+            .no-print {
+              display: none !important;
+            }
 
-          .factura-print {
-            box-shadow: none !important;
-            border: none !important;
-            border-radius: 0 !important;
-            width: 100% !important;
-            min-height: auto !important;
-            padding: 7mm 8mm !important;
-          }
+            .documento {
+              box-shadow: none !important;
+              border: none !important;
+              margin: 0 !important;
+              width: 100% !important;
+              max-width: 100% !important;
+            }
 
-          .marca-anulada {
-            print-color-adjust: exact;
-            -webkit-print-color-adjust: exact;
-          }
+            .marca-anulada {
+              print-color-adjust: exact;
+              -webkit-print-color-adjust: exact;
+            }
 
-          @page {
-            size: letter;
-            margin: 5mm;
+            @page {
+              size: letter;
+              margin: 10mm;
+            }
           }
-        }
-      `}</style>
+        `}
+      </style>
 
-      <div className="max-w-5xl mx-auto">
-        <div className="no-print flex gap-3 justify-end mb-4">
-          <button
-            onClick={() => router.push('/clientes')}
-            className="px-4 py-2 rounded-lg bg-slate-700 text-white hover:bg-slate-600"
+      <div
+        className="no-print"
+        style={{
+          maxWidth: '980px',
+          margin: '0 auto 16px auto',
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: '12px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => router.push('/clientes')}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '8px',
+            border: '1px solid #BFC7D1',
+            backgroundColor: '#FFFFFF',
+            color: '#3F4A56',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          Volver a Clientes
+        </button>
+
+        <button
+          type="button"
+          onClick={imprimirFactura}
+          style={{
+            padding: '10px 16px',
+            borderRadius: '8px',
+            border: '1px solid #005099',
+            backgroundColor: '#005099',
+            color: '#FFFFFF',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          Imprimir / Guardar PDF
+        </button>
+      </div>
+
+      <main
+        className="documento"
+        style={{
+          maxWidth: '980px',
+          margin: '0 auto',
+          backgroundColor: '#FFFFFF',
+          border: '1px solid #D8DEE6',
+          borderRadius: '12px',
+          padding: '34px',
+          boxShadow: '0 10px 30px rgba(15,23,42,0.10)',
+          position: 'relative',
+          fontSize: '11px',
+          lineHeight: 1.35,
+        }}
+      >
+        {facturaAnulada && (
+          <div
+            className="marca-anulada"
+            style={{
+              position: 'absolute',
+              top: '44%',
+              left: '50%',
+              transform: 'translate(-50%, -50%) rotate(-18deg)',
+              fontSize: '72px',
+              fontWeight: 'bold',
+              color: 'rgba(220,38,38,0.16)',
+              border: '5px solid rgba(220,38,38,0.20)',
+              padding: '12px 32px',
+              borderRadius: '16px',
+              zIndex: 2,
+              pointerEvents: 'none',
+            }}
+            aria-hidden="true"
           >
-            Volver
-          </button>
+            ANULADA
+          </div>
+        )}
 
-          <button
-            onClick={imprimirFactura}
-            className="px-4 py-2 rounded-lg bg-cyan-600 text-white hover:bg-cyan-500"
-          >
-            Imprimir / Guardar PDF
-          </button>
-        </div>
+        <header
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: '24px',
+            borderBottom: '2px solid #1F2933',
+            paddingBottom: '18px',
+            marginBottom: '22px',
+          }}
+        >
+          <div>
+            <img
+              src="/logo-lud.png"
+              alt="ERP LUD"
+              style={{
+                width: '130px',
+                height: 'auto',
+                marginBottom: '14px',
+              }}
+            />
 
-        <div className="factura-print relative overflow-hidden bg-white text-black rounded-2xl shadow-xl border border-slate-300 p-7 text-[11px] leading-tight">
-          {facturaAnulada && (
-            <div
-              className="marca-anulada pointer-events-none absolute inset-0 z-0 flex items-center justify-center"
-              aria-hidden="true"
+            <h1
+              style={{
+                margin: 0,
+                fontSize: '24px',
+                color: '#1F2933',
+                fontWeight: 'bold',
+              }}
             >
-              <div className="-rotate-45 text-[95px] font-black tracking-[0.25em] text-red-600 opacity-10">
-                ANULADA
+              {DATOS_EMPRESA.nombre}
+            </h1>
+
+            <p
+              style={{
+                margin: '4px 0 0 0',
+                fontSize: '12px',
+                color: '#5B6673',
+                lineHeight: 1.5,
+              }}
+            >
+              {DATOS_EMPRESA.eslogan}<br />
+              RTN: {DATOS_EMPRESA.rtn}<br />
+              {DATOS_EMPRESA.direccion}<br />
+              Tel: {DATOS_EMPRESA.telefono} | {DATOS_EMPRESA.correo}
+            </p>
+          </div>
+
+          <div style={{ textAlign: 'right' }}>
+            <h2
+              style={{
+                margin: 0,
+                fontSize: '26px',
+                color: '#005099',
+                fontWeight: 'bold',
+                letterSpacing: '0.04em',
+              }}
+            >
+              FACTURA
+            </h2>
+
+            <div
+              style={{
+                marginTop: '12px',
+                fontSize: '13px',
+                color: '#3F4A56',
+                lineHeight: 1.7,
+              }}
+            >
+              <div>
+                <strong>No.:</strong> {factura.secuencia_fiscal}
               </div>
-            </div>
-          )}
-
-          <div className="relative z-10">
-            {/* ENCABEZADO COMPACTO */}
-            <div className="mb-3 grid grid-cols-12 items-start gap-3">
-              <div className="col-span-7">
-                <h1 className="text-[20px] font-bold leading-none">{DATOS_EMPRESA.nombre}</h1>
-                <p className="mt-1 text-[11px]">{DATOS_EMPRESA.eslogan}</p>
-                <p>RTN {DATOS_EMPRESA.rtn}</p>
-                <p>
-                  {DATOS_EMPRESA.direccion}, Tel {DATOS_EMPRESA.telefono}
-                </p>
-                <p>Correo: {DATOS_EMPRESA.correo}</p>
+              <div>
+                <strong>Fecha:</strong> {formatearFecha(factura.fecha_factura)}
               </div>
-
-              <div className="col-span-5 text-right">
-                <h2 className="text-[18px] font-bold leading-none tracking-wide">FACTURA</h2>
-                <p className="mt-2">
-                  <span className="font-bold">No.:</span> {factura.secuencia_fiscal}
-                </p>
-                <p>
-                  <span className="font-bold">Fecha:</span>{' '}
-                  {formatearFecha(factura.fecha_factura)}
-                </p>
-                <p>
-                  <span className="font-bold">Estado:</span> {factura.estado || 'Emitida'}
-                </p>
+              <div>
+                <strong>Estado:</strong> {factura.estado || 'Emitida'}
               </div>
-            </div>
-
-            {/* DATOS DEL CLIENTE */}
-            <div className="mb-3 rounded border border-slate-300 px-3 py-2">
-              <div className="grid grid-cols-12 gap-x-3 gap-y-1">
-                <p className="col-span-8">
-                  <span className="font-bold">Cliente:</span> {factura.nombre_cliente}
-                </p>
-                <p className="col-span-4">
-                  <span className="font-bold">RTN:</span> {factura.rtn || '-'}
-                </p>
-                <p className="col-span-8">
-                  <span className="font-bold">Dirección:</span> {factura.direccion || '-'}
-                </p>
-                <p className="col-span-4">
-                  <span className="font-bold">Cod:</span>
-                </p>
-              </div>
-            </div>
-
-            {/* DETALLE */}
-            <div className="mb-3 min-h-[120px] overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-y border-black">
-                    <th className="py-1.5 text-left">Descripción</th>
-                    <th className="w-[55px] py-1.5 text-center">Cant.</th>
-                    <th className="w-[75px] py-1.5 text-right">Precio</th>
-                    <th className="w-[72px] py-1.5 text-center">Tipo Imp.</th>
-                    <th className="w-[75px] py-1.5 text-right">Impuesto</th>
-                    <th className="w-[80px] py-1.5 text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {detalle.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="py-4 text-center">
-                        No hay detalle para esta factura.
-                      </td>
-                    </tr>
-                  ) : (
-                    detalle.map((item) => (
-                      <tr key={item.id_detalle} className="border-b border-slate-100">
-                        <td className="py-1.5 pr-2">{item.descripcion_producto}</td>
-                        <td className="py-1.5 text-center">{item.cantidad}</td>
-                        <td className="py-1.5 text-right">{moneda(item.precio_unitario)}</td>
-                        <td className="py-1.5 text-center">{item.tipo_impuesto || '-'}</td>
-                        <td className="py-1.5 text-right">{moneda(item.monto_impuesto_linea)}</td>
-                        <td className="py-1.5 text-right">{moneda(item.total_linea)}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* TOTALES Y LETRAS EN LA MISMA FRANJA */}
-            <div className="mb-3 grid grid-cols-12 gap-4">
-              <div className="col-span-7">
-                <div className="mb-3">
-                  <p className="font-bold">Total en Letras:</p>
-                  <p className="mt-1">{totalEnLetras(factura.total_factura)}</p>
-                </div>
-
-                <div className="grid grid-cols-1 gap-1">
-                  <p>
-                    <span className="font-bold">Reg O/C Exenta:</span>
-                  </p>
-                  <p>
-                    <span className="font-bold">Reg Exonerados:</span>
-                  </p>
-                  <p>
-                    <span className="font-bold">No. Registro SAG:</span>
-                  </p>
-
-                  {facturaAnulada && factura.descripcion_anulacion && (
-                    <p className="mt-1 rounded border border-red-200 bg-red-50 px-2 py-1 text-[10px] text-red-800">
-                      <span className="font-bold">Motivo de anulación:</span>{' '}
-                      {factura.descripcion_anulacion}
-                    </p>
-                  )}
-
-                  {!facturaAnulada &&
-                    notasAplicadas.map((nota) => (
-                      <p
-                        key={nota.id_nota_credito}
-                        className="mt-1 rounded border border-cyan-200 bg-cyan-50 px-2 py-1 text-[10px] text-cyan-900"
-                      >
-                        <span className="font-bold">Nota de crédito aplicada:</span>{' '}
-                        {nota.descripcion_aplicacion ||
-                          `Nota de crédito ${nota.secuencia_fiscal} aplicada a esta factura.`}
-                      </p>
-                    ))}
-                </div>
-              </div>
-
-              <div className="col-span-5">
-                <div className="w-full text-[10.5px]">
-                  <div className="flex justify-between border-b border-slate-300 py-[2px]">
-                    <span>Sub Total:</span>
-                    <span>{moneda(factura.subtotal)}</span>
-                  </div>
-
-                  <div className="flex justify-between border-b border-slate-300 py-[2px]">
-                    <span>Importe Exonerado:</span>
-                    <span>{moneda(factura.importe_exonerado)}</span>
-                  </div>
-
-                  <div className="flex justify-between border-b border-slate-300 py-[2px]">
-                    <span>Importe Exento:</span>
-                    <span>{moneda(factura.importe_exento)}</span>
-                  </div>
-
-                  <div className="flex justify-between border-b border-slate-300 py-[2px]">
-                    <span>Importe Gravado 15%:</span>
-                    <span>{moneda(factura.importe_gravado_15)}</span>
-                  </div>
-
-                  <div className="flex justify-between border-b border-slate-300 py-[2px]">
-                    <span>Importe Gravado 18%:</span>
-                    <span>{moneda(factura.importe_gravado_18)}</span>
-                  </div>
-
-                  <div className="flex justify-between border-b border-slate-300 py-[2px]">
-                    <span>I.S.V. 15%:</span>
-                    <span>{moneda(factura.isv_15)}</span>
-                  </div>
-
-                  <div className="flex justify-between border-b border-slate-300 py-[2px]">
-                    <span>I.S.V. 18%:</span>
-                    <span>{moneda(factura.isv_18)}</span>
-                  </div>
-
-                  <div className="mt-1 flex justify-between border-t border-black pt-1 text-[12px] font-bold">
-                    <span>TOTAL A PAGAR:</span>
-                    <span>{moneda(factura.total_factura)}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* INFORMACIÓN FISCAL Y COPIAS EN DOS COLUMNAS */}
-            <div className="mt-3 grid grid-cols-12 gap-4 border-t border-slate-300 pt-2">
-              <div className="col-span-7">
-                <p>
-                  <span className="font-bold">C.A.I.:</span> {cai || '-'}
-                </p>
-                <p>
-                  <span className="font-bold">Fecha Límite de Emisión:</span>{' '}
-                  {formatearFecha(autorizacion?.fecha_expiracion)}
-                </p>
-                <p>
-                  <span className="font-bold">Rango Autorizado:</span>{' '}
-                  {rangoInicial || '-'} - al - {rangoFinal || '-'}
-                </p>
-              </div>
-
-              <div className="col-span-5">
-                <p>Original: Cliente</p>
-                <p>Copia: Obligado Tributario</p>
-                <p>Triplicado: Archivo</p>
-                <p>Modalidad de Impresión: SFC en Red Fijo</p>
-              </div>
-            </div>
-
-            <div className="mt-3 text-center text-[11px] font-semibold">
-              La Factura es beneficio de todos, ¡Exíjala!
             </div>
           </div>
-        </div>
-      </div>
+        </header>
+
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '16px',
+            marginBottom: '18px',
+          }}
+        >
+          <div
+            style={{
+              border: '1px solid #D8DEE6',
+              borderRadius: '10px',
+              padding: '14px',
+              backgroundColor: '#F8FAFC',
+            }}
+          >
+            <h3
+              style={{
+                margin: '0 0 10px 0',
+                fontSize: '14px',
+                color: '#1F2933',
+                fontWeight: 'bold',
+              }}
+            >
+              Datos del cliente
+            </h3>
+
+            <div style={{ fontSize: '12px', color: '#3F4A56', lineHeight: 1.7 }}>
+              <div>
+                <strong>Cliente:</strong> {factura.nombre_cliente}
+              </div>
+              <div>
+                <strong>RTN:</strong> {factura.rtn || '-'}
+              </div>
+              <div>
+                <strong>Dirección:</strong> {factura.direccion || '-'}
+              </div>
+              <div>
+                <strong>Cod:</strong>
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              border: '1px solid #D8DEE6',
+              borderRadius: '10px',
+              padding: '14px',
+              backgroundColor: '#F8FAFC',
+            }}
+          >
+            <h3
+              style={{
+                margin: '0 0 10px 0',
+                fontSize: '14px',
+                color: '#1F2933',
+                fontWeight: 'bold',
+              }}
+            >
+              Información fiscal
+            </h3>
+
+            <div style={{ fontSize: '12px', color: '#3F4A56', lineHeight: 1.7 }}>
+              <div>
+                <strong>C.A.I.:</strong> {cai || '-'}
+              </div>
+              <div>
+                <strong>Fecha Límite de Emisión:</strong>{' '}
+                {formatearFecha(autorizacion?.fecha_expiracion)}
+              </div>
+              <div>
+                <strong>Rango Autorizado:</strong>{' '}
+                {rangoInicial || '-'} - al - {rangoFinal || '-'}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section style={{ marginBottom: '18px' }}>
+          <table
+            style={{
+              width: '100%',
+              borderCollapse: 'collapse',
+              fontSize: '11px',
+            }}
+          >
+            <thead>
+              <tr>
+                <th style={th}>Descripción</th>
+                <th style={{ ...th, textAlign: 'center', width: '55px' }}>Cant.</th>
+                <th style={{ ...th, textAlign: 'right', width: '75px' }}>Precio</th>
+                <th style={{ ...th, textAlign: 'center', width: '72px' }}>Tipo Imp.</th>
+                <th style={{ ...th, textAlign: 'right', width: '75px' }}>Impuesto</th>
+                <th style={{ ...th, textAlign: 'right', width: '80px' }}>Total</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {detalle.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ ...td, textAlign: 'center' }}>
+                    No hay detalle para esta factura.
+                  </td>
+                </tr>
+              ) : (
+                detalle.map((item) => (
+                  <tr key={item.id_detalle}>
+                    <td style={td}>{item.descripcion_producto}</td>
+                    <td style={{ ...td, textAlign: 'center' }}>{item.cantidad}</td>
+                    <td style={{ ...td, textAlign: 'right' }}>{moneda(item.precio_unitario)}</td>
+                    <td style={{ ...td, textAlign: 'center' }}>{item.tipo_impuesto || '-'}</td>
+                    <td style={{ ...td, textAlign: 'right' }}>{moneda(item.monto_impuesto_linea)}</td>
+                    <td style={{ ...td, textAlign: 'right' }}>{moneda(item.total_linea)}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </section>
+
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 320px',
+            gap: '24px',
+            alignItems: 'start',
+            marginBottom: '18px',
+          }}
+        >
+          <div
+            style={{
+              fontSize: '11px',
+              color: '#5B6673',
+              lineHeight: 1.6,
+            }}
+          >
+            <div style={{ marginBottom: '12px' }}>
+              <strong>Total en Letras:</strong>
+              <p style={{ margin: '6px 0 0 0' }}>{totalEnLetras(factura.total_factura)}</p>
+            </div>
+
+            <div>
+              <p style={{ margin: '3px 0' }}>
+                <strong>Reg O/C Exenta:</strong>
+              </p>
+              <p style={{ margin: '3px 0' }}>
+                <strong>Reg Exonerados:</strong>
+              </p>
+              <p style={{ margin: '3px 0' }}>
+                <strong>No. Registro SAG:</strong>
+              </p>
+            </div>
+
+            {facturaAnulada && factura.descripcion_anulacion && (
+              <div
+                style={{
+                  marginTop: '10px',
+                  border: '1px solid #FCA5A5',
+                  borderRadius: '10px',
+                  padding: '10px',
+                  backgroundColor: '#FEF2F2',
+                  color: '#991B1B',
+                }}
+              >
+                <strong>Motivo de anulación:</strong> {factura.descripcion_anulacion}
+              </div>
+            )}
+
+            {!facturaAnulada &&
+              notasAplicadas.map((nota) => (
+                <div
+                  key={nota.id_nota_credito}
+                  style={{
+                    marginTop: '10px',
+                    border: '1px solid #BFC7D1',
+                    borderRadius: '10px',
+                    padding: '10px',
+                    backgroundColor: '#EEF5FB',
+                    color: '#00487A',
+                  }}
+                >
+                  <strong>Nota de crédito aplicada:</strong>{' '}
+                  {nota.descripcion_aplicacion ||
+                    `Nota de crédito ${nota.secuencia_fiscal} aplicada a esta factura.`}
+                </div>
+              ))}
+          </div>
+
+          <div
+            style={{
+              border: '1px solid #D8DEE6',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              fontSize: '12px',
+            }}
+          >
+            <FilaTotal label="Sub Total" valor={factura.subtotal} />
+            <FilaTotal label="Importe Exonerado" valor={factura.importe_exonerado} />
+            <FilaTotal label="Importe Exento" valor={factura.importe_exento} />
+            <FilaTotal label="Importe Gravado 15%" valor={factura.importe_gravado_15} />
+            <FilaTotal label="Importe Gravado 18%" valor={factura.importe_gravado_18} />
+            <FilaTotal label="I.S.V. 15%" valor={factura.isv_15} />
+            <FilaTotal label="I.S.V. 18%" valor={factura.isv_18} />
+            <FilaTotal label="TOTAL A PAGAR" valor={factura.total_factura} destacado />
+          </div>
+        </section>
+
+        <section
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 320px',
+            gap: '24px',
+            borderTop: '1px solid #D8DEE6',
+            paddingTop: '14px',
+            fontSize: '11px',
+            color: '#5B6673',
+            lineHeight: 1.6,
+          }}
+        >
+          <div>
+            <p style={{ margin: '3px 0' }}>
+              <strong>C.A.I.:</strong> {cai || '-'}
+            </p>
+            <p style={{ margin: '3px 0' }}>
+              <strong>Fecha Límite de Emisión:</strong>{' '}
+              {formatearFecha(autorizacion?.fecha_expiracion)}
+            </p>
+            <p style={{ margin: '3px 0' }}>
+              <strong>Rango Autorizado:</strong> {rangoInicial || '-'} - al - {rangoFinal || '-'}
+            </p>
+          </div>
+
+          <div>
+            <p style={{ margin: '3px 0' }}>Original: Cliente</p>
+            <p style={{ margin: '3px 0' }}>Copia: Obligado Tributario</p>
+            <p style={{ margin: '3px 0' }}>Triplicado: Archivo</p>
+            <p style={{ margin: '3px 0' }}>Modalidad de Impresión: SFC en Red Fijo</p>
+          </div>
+        </section>
+
+        <footer
+          style={{
+            marginTop: '24px',
+            borderTop: '1px solid #D8DEE6',
+            paddingTop: '14px',
+            fontSize: '11px',
+            color: '#1F2933',
+            textAlign: 'center',
+            fontWeight: 600,
+          }}
+        >
+          La Factura es beneficio de todos, ¡Exíjala!
+        </footer>
+      </main>
+    </div>
+  )
+}
+
+const th = {
+  padding: '9px 8px',
+  border: '1px solid #BFC7D1',
+  backgroundColor: '#F3F6F8',
+  color: '#1F2933',
+  fontWeight: 'bold',
+  textAlign: 'left' as const,
+}
+
+const td = {
+  padding: '8px',
+  border: '1px solid #D8DEE6',
+  color: '#3F4A56',
+  verticalAlign: 'top' as const,
+}
+
+function FilaTotal({
+  label,
+  valor,
+  destacado = false,
+}: {
+  label: string
+  valor: number | string | null | undefined
+  destacado?: boolean
+}) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '12px',
+        padding: '8px 12px',
+        borderBottom: '1px solid #EEF2F7',
+        backgroundColor: destacado ? '#EEF5FB' : '#FFFFFF',
+        color: destacado ? '#00487A' : '#3F4A56',
+        fontWeight: destacado ? 'bold' : 400,
+      }}
+    >
+      <span>{label}</span>
+      <span>{moneda(valor)}</span>
     </div>
   )
 }

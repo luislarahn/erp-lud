@@ -23,14 +23,7 @@ type Producto = {
   impuesto: number | string | null
 }
 
-type Correlativo = {
-  id_correlativo: number
-  secuencia_fiscal: string
-  numero: number
-  tipo_documento?: string | null
-}
-
-type LineaFactura = {
+type LineaProforma = {
   idFila: number
   id_producto: number | ''
   cantidad: number
@@ -42,7 +35,7 @@ type LineaFactura = {
   total_linea: number
 }
 
-type FacturacionTabProps = {
+type ProformaTabProps = {
   irACrearCliente?: () => void
 }
 
@@ -56,7 +49,7 @@ function obtenerPorcentajeImpuesto(tipoImpuesto: TipoImpuesto) {
   return 0
 }
 
-function crearLineaVacia(idFila: number): LineaFactura {
+function crearLineaVacia(idFila: number): LineaProforma {
   return {
     idFila,
     id_producto: '',
@@ -70,7 +63,7 @@ function crearLineaVacia(idFila: number): LineaFactura {
   }
 }
 
-function recalcularLinea(linea: LineaFactura): LineaFactura {
+function recalcularLinea(linea: LineaProforma): LineaProforma {
   const cantidad = Number(linea.cantidad) || 0
   const precio = Number(linea.precio_unitario) || 0
   const porcentaje = obtenerPorcentajeImpuesto(linea.tipo_impuesto)
@@ -107,10 +100,9 @@ function obtenerMensajeError(error: any) {
   }
 }
 
-export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps) {
+export default function ProformaTab({ irACrearCliente }: ProformaTabProps) {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [productos, setProductos] = useState<Producto[]>([])
-  const [correlativos, setCorrelativos] = useState<Correlativo[]>([])
 
   const [cargandoBase, setCargandoBase] = useState(true)
   const [guardando, setGuardando] = useState(false)
@@ -122,12 +114,11 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
   const [correo, setCorreo] = useState('')
   const [telefono, setTelefono] = useState('')
   const [rtn, setRtn] = useState('')
-  const [fechaFactura, setFechaFactura] = useState(hoyLocal())
+  const [fechaProforma, setFechaProforma] = useState(hoyLocal())
 
-  const [idCorrelativo, setIdCorrelativo] = useState<number | ''>('')
-  const [secuenciaFiscal, setSecuenciaFiscal] = useState('')
+  const [numeroProforma, setNumeroProforma] = useState('')
 
-  const [lineas, setLineas] = useState<LineaFactura[]>([crearLineaVacia(1)])
+  const [lineas, setLineas] = useState<LineaProforma[]>([crearLineaVacia(1)])
 
   useEffect(() => {
     cargarDatosBase()
@@ -138,7 +129,7 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
     setMensaje('')
 
     try {
-      const [clientesRes, productosRes, correlativosRes] = await Promise.all([
+      const [clientesRes, productosRes, proformasRes] = await Promise.all([
         supabase
           .from('clientes')
           .select('id_cliente, nombre_cliente, rtn, direccion, correo, telefono, nombre_contacto')
@@ -150,44 +141,28 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
           .order('descripcion', { ascending: true }),
 
         supabase
-          .from('correlativos_fiscales')
-          .select(`
-            id_correlativo,
-            secuencia_fiscal,
-            numero,
-            tipo_documento,
-            autorizaciones_fiscales!inner (
-              id_autorizacion,
-              activo,
-              fecha_expiracion
-            )
-          `)
-          .eq('usado', false)
-          .eq('tipo_documento', 'factura')
-          .eq('autorizaciones_fiscales.activo', true)
-          .gte('autorizaciones_fiscales.fecha_expiracion', hoyLocal())
-          .order('numero', { ascending: true }),
+          .from('proformas')
+          .select('correlativo')
+          .order('correlativo', { ascending: false })
+          .limit(1),
       ])
 
       if (clientesRes.error) throw clientesRes.error
       if (productosRes.error) throw productosRes.error
-      if (correlativosRes.error) throw correlativosRes.error
+      if (proformasRes.error) throw proformasRes.error
 
       const clientesData = clientesRes.data || []
       const productosData = productosRes.data || []
-      const correlativosData = (correlativosRes.data || []) as Correlativo[]
+      const ultimoCorrelativo =
+        proformasRes.data && proformasRes.data.length > 0
+          ? Number(proformasRes.data[0].correlativo || 0)
+          : 0
+
+      const siguiente = ultimoCorrelativo + 1
 
       setClientes(clientesData)
       setProductos(productosData)
-      setCorrelativos(correlativosData)
-
-      if (correlativosData.length > 0) {
-        setIdCorrelativo(correlativosData[0].id_correlativo)
-        setSecuenciaFiscal(correlativosData[0].secuencia_fiscal)
-      } else {
-        setIdCorrelativo('')
-        setSecuenciaFiscal('')
-      }
+      setNumeroProforma(`PRO-${String(siguiente).padStart(6, '0')}`)
     } catch (error: any) {
       const mensajeError = obtenerMensajeError(error)
       console.log('Error al cargar datos base:', error)
@@ -362,7 +337,7 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
     }
   }, [lineas])
 
-  async function guardarFactura() {
+  async function guardarProforma() {
     setMensaje('')
 
     if (!idCliente) {
@@ -370,8 +345,8 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
       return
     }
 
-    if (!idCorrelativo || !secuenciaFiscal) {
-      setMensaje('No hay secuencias fiscales disponibles. Cree o cargue una autorización fiscal en Configuraciones.')
+    if (!numeroProforma) {
+      setMensaje('No se pudo generar el número interno de proforma.')
       return
     }
 
@@ -380,51 +355,42 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
     )
 
     if (lineasValidas.length === 0) {
-      setMensaje('Debe agregar al menos una línea válida en la factura.')
+      setMensaje('Debe agregar al menos una línea válida en la proforma.')
       return
-    }
-
-    for (const linea of lineasValidas) {
-      const producto = productos.find((p) => p.id_producto === Number(linea.id_producto))
-
-      if (!producto) {
-        setMensaje('Uno de los productos ya no existe en inventario.')
-        return
-      }
-
-      const stockActual = Number(producto.stock_actual || 0)
-      const cantidad = Number(linea.cantidad || 0)
-
-      if (cantidad > stockActual) {
-        setMensaje(`No hay stock suficiente para "${producto.descripcion}". Disponible: ${stockActual}.`)
-        return
-      }
     }
 
     setGuardando(true)
 
     try {
-      const correlativoActual = correlativos[0]
+      const { data: ultimaProforma, error: errorUltima } = await supabase
+        .from('proformas')
+        .select('correlativo')
+        .order('correlativo', { ascending: false })
+        .limit(1)
 
-      if (!correlativoActual) {
-        setMensaje('No hay secuencias fiscales disponibles.')
-        setGuardando(false)
-        return
-      }
+      if (errorUltima) throw errorUltima
 
-      const { data: facturaCreada, error: errorFactura } = await supabase
-        .from('facturas')
+      const ultimoCorrelativo =
+        ultimaProforma && ultimaProforma.length > 0
+          ? Number(ultimaProforma[0].correlativo || 0)
+          : 0
+
+      const correlativo = ultimoCorrelativo + 1
+      const numeroInterno = `PRO-${String(correlativo).padStart(6, '0')}`
+
+      const { data: proformaCreada, error: errorProforma } = await supabase
+        .from('proformas')
         .insert([
           {
             id_cliente: idCliente,
-            id_correlativo: correlativoActual.id_correlativo,
-            secuencia_fiscal: correlativoActual.secuencia_fiscal,
+            numero_proforma: numeroInterno,
+            correlativo,
             nombre_cliente: nombreCliente.trim(),
             direccion: direccion.trim() || null,
             correo: correo.trim() || null,
             telefono: telefono.trim() || null,
             rtn: rtn.trim() || null,
-            fecha_factura: fechaFactura,
+            fecha_proforma: fechaProforma,
             subtotal: totales.subtotal,
             importe_exonerado: totales.importeExonerado,
             importe_exento: totales.importeExento,
@@ -433,22 +399,22 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
             isv_15: totales.isv15,
             isv_18: totales.isv18,
             impuesto_total: totales.impuestoTotal,
-            total_factura: totales.total,
+            total_proforma: totales.total,
             estado: 'Emitida',
           },
         ])
-        .select('id_factura')
+        .select('id_proforma')
         .single()
 
-      if (errorFactura) throw errorFactura
+      if (errorProforma) throw errorProforma
 
-      const idFactura = facturaCreada.id_factura
+      const idProforma = proformaCreada.id_proforma
 
-      const detalleFactura = lineasValidas.map((linea) => {
+      const detalleProforma = lineasValidas.map((linea) => {
         const producto = productos.find((p) => p.id_producto === Number(linea.id_producto))
 
         return {
-          id_factura: idFactura,
+          id_proforma: idProforma,
           id_producto: Number(linea.id_producto),
           descripcion_producto: producto?.descripcion || 'Producto',
           cantidad: Number(linea.cantidad),
@@ -462,58 +428,14 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
       })
 
       const { error: errorDetalle } = await supabase
-        .from('factura_detalle')
-        .insert(detalleFactura)
+        .from('proforma_detalle')
+        .insert(detalleProforma)
 
       if (errorDetalle) throw errorDetalle
 
-      const { error: errorCorrelativo } = await supabase
-        .from('correlativos_fiscales')
-        .update({
-          usado: true,
-          fecha_asignacion: fechaFactura,
-        })
-        .eq('id_correlativo', correlativoActual.id_correlativo)
+      setMensaje(`Factura proforma creada correctamente con número ${numeroInterno}.`)
 
-      if (errorCorrelativo) throw errorCorrelativo
-
-      for (const linea of lineasValidas) {
-        const producto = productos.find((p) => p.id_producto === Number(linea.id_producto))
-        if (!producto) continue
-
-        const stockAnterior = Number(producto.stock_actual || 0)
-        const cantidad = Number(linea.cantidad || 0)
-        const stockNuevo = stockAnterior - cantidad
-
-        const { error: errorUpdateProducto } = await supabase
-          .from('productos')
-          .update({
-            stock_actual: stockNuevo,
-          })
-          .eq('id_producto', Number(linea.id_producto))
-
-        if (errorUpdateProducto) throw errorUpdateProducto
-
-        const { error: errorMovimiento } = await supabase
-          .from('movimientos_inventario')
-          .insert([
-            {
-              id_producto: Number(linea.id_producto),
-              descripcion: producto.descripcion,
-              tipo_operacion: `Salida por factura ${correlativoActual.secuencia_fiscal}`,
-              cantidad,
-              stock_anterior: stockAnterior,
-              stock_nuevo: stockNuevo,
-              fecha_registro: fechaFactura,
-            },
-          ])
-
-        if (errorMovimiento) throw errorMovimiento
-      }
-
-      setMensaje(`Factura creada correctamente con secuencia ${correlativoActual.secuencia_fiscal}.`)
-
-      window.open(`/clientes/factura/${idFactura}`, '_blank')
+      window.open(`/clientes/proforma/${idProforma}`, '_blank')
 
       setIdCliente(null)
       setNombreCliente('')
@@ -521,14 +443,14 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
       setCorreo('')
       setTelefono('')
       setRtn('')
-      setFechaFactura(hoyLocal())
+      setFechaProforma(hoyLocal())
       setLineas([crearLineaVacia(1)])
 
       await cargarDatosBase()
     } catch (error: any) {
       const mensajeError = obtenerMensajeError(error)
-      console.log('Error al crear factura:', error)
-      setMensaje(`Error al crear factura: ${mensajeError}`)
+      console.log('Error al crear factura proforma:', error)
+      setMensaje(`Error al crear factura proforma: ${mensajeError}`)
     } finally {
       setGuardando(false)
     }
@@ -537,14 +459,14 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
   if (cargandoBase) {
     return (
       <div className="rounded-2xl border border-gray-300 bg-gray-50 p-6 text-gray-800 shadow-sm">
-        Cargando datos de facturación...
+        Cargando datos de factura proforma...
       </div>
     )
   }
 
   return (
     <div className="text-black">
-      <h2 className="text-2xl font-bold mb-4 text-black">Facturación</h2>
+      <h2 className="text-2xl font-bold mb-4 text-black">Factura Proforma</h2>
 
       <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 shadow-sm mb-6">
         <div className="space-y-3">
@@ -608,8 +530,8 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
               </label>
               <input
                 type="date"
-                value={fechaFactura}
-                onChange={(e) => setFechaFactura(e.target.value)}
+                value={fechaProforma}
+                onChange={(e) => setFechaProforma(e.target.value)}
                 className="w-[145px] rounded-lg bg-white border border-gray-300 px-3 py-2 text-[13px] text-black"
               />
             </div>
@@ -658,11 +580,11 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
 
           <div className="flex items-center gap-3">
             <label className="min-w-[112px] font-semibold text-[13px] text-gray-700 whitespace-nowrap">
-              Secuencia Fiscal
+              Número Proforma
             </label>
             <input
               type="text"
-              value={secuenciaFiscal || 'No hay secuencias fiscales disponibles'}
+              value={numeroProforma || 'Generando número de proforma'}
               readOnly
               className="w-full max-w-[420px] rounded-lg bg-gray-100 border border-gray-300 px-3 py-2 text-[13px] text-black cursor-not-allowed"
             />
@@ -671,7 +593,7 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
       </div>
 
       <div className="bg-gray-50 border border-gray-300 rounded-2xl p-6 shadow-sm mb-6">
-        <h3 className="text-xl font-semibold mb-3 text-black">Detalle de la factura</h3>
+        <h3 className="text-xl font-semibold mb-3 text-black">Detalle de la factura proforma</h3>
 
         <div className="overflow-x-auto rounded-2xl border border-gray-200 bg-white">
           <table className="w-full border-collapse">
@@ -834,7 +756,7 @@ export default function FacturacionTab({ irACrearCliente }: FacturacionTabProps)
       <div className="mt-6 flex justify-end">
         <button
           type="button"
-          onClick={guardarFactura}
+          onClick={guardarProforma}
           disabled={guardando}
           className="px-6 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50"
         >

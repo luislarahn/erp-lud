@@ -233,93 +233,98 @@ export default function RecibosTab({ irACrearCliente }: RecibosTabProps) {
         onSubmit={guardarRecibo}
         className="bg-gray-50 border border-gray-300 rounded-2xl p-6 shadow-sm mb-6"
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block mb-1 font-medium text-black">Nombre de cliente</label>
-            <input
-              type="text"
-              list="clientes-recibos-existentes"
-              value={nombreCliente}
-              onChange={(e) => seleccionarClientePorNombre(e.target.value)}
-              placeholder="Escriba o seleccione el cliente"
-              className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-              required
-            />
-            <datalist id="clientes-recibos-existentes">
-              {clientes.map((cliente) => (
-                <option key={cliente.id_cliente} value={cliente.nombre_cliente} />
-              ))}
-            </datalist>
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            <div>
+              <label className="block mb-1 font-medium text-black">Nombre de cliente</label>
+              <input
+                type="text"
+                list="clientes-recibos-existentes"
+                value={nombreCliente}
+                onChange={(e) => seleccionarClientePorNombre(e.target.value)}
+                placeholder="Escriba o seleccione el cliente"
+                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
+                required
+              />
+              <datalist id="clientes-recibos-existentes">
+                {clientes.map((cliente) => (
+                  <option key={cliente.id_cliente} value={cliente.nombre_cliente} />
+                ))}
+              </datalist>
 
-            {!idCliente && nombreCliente.trim() !== '' && (
-              <div className="mt-2 flex items-center gap-3">
-                <p className="text-xs text-amber-600">
-                  Ese cliente no existe todavía.
-                </p>
+              {!idCliente && nombreCliente.trim() !== '' && (
+                <div className="mt-2 flex items-center gap-3">
+                  <p className="text-xs text-amber-600">
+                    Ese cliente no existe todavía.
+                  </p>
 
-                <button
-                  type="button"
-                  onClick={irACrearCliente}
-                  className="rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-500"
-                >
-                  Crear
-                </button>
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={() => irACrearCliente?.()}
+                    className="rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-500"
+                  >
+                    Crear
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block mb-1 font-medium text-black">Dirección</label>
+              <input
+                type="text"
+                value={direccion}
+                onChange={(e) => setDireccion(e.target.value)}
+                placeholder="Dirección del cliente"
+                className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block mb-1 font-medium text-black">Fecha</label>
-            <input
-              type="date"
-              value={fechaRecibo}
-              onChange={(e) => setFechaRecibo(e.target.value)}
-              className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black"
-              required
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div>
+              <label className="block mb-1 font-medium text-black">Fecha</label>
+              <input
+                type="date"
+                value={fechaRecibo}
+                onChange={(e) => setFechaRecibo(e.target.value)}
+                className="w-full max-w-[145px] rounded-lg bg-white border border-gray-300 px-3 py-2 text-black"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block mb-1 font-medium text-black">Dirección</label>
-            <input
-              type="text"
-              value={direccion}
-              onChange={(e) => setDireccion(e.target.value)}
-              placeholder="Dirección del cliente"
-              className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-            />
-          </div>
+            <div>
+              <label className="block mb-1 font-medium text-black">Correo</label>
+              <input
+                type="email"
+                value={correo}
+                onChange={(e) => setCorreo(e.target.value)}
+                placeholder="correo@ejemplo.com"
+                className="w-full max-w-[280px] rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
+              />
+            </div>
 
-          <div>
-            <label className="block mb-1 font-medium text-black">Teléfono</label>
-            <input
-              type="text"
-              value={telefono}
-              onChange={(e) => setTelefono(e.target.value)}
-              placeholder="9999-9999"
-              className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-            />
-          </div>
+            <div>
+              <label className="block mb-1 font-medium text-black">Teléfono</label>
+              <input
+                type="text"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                placeholder="9999-9999"
+                maxLength={15}
+                className="w-full max-w-[145px] rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
+              />
+            </div>
 
-          <div>
-            <label className="block mb-1 font-medium text-black">Correo</label>
-            <input
-              type="email"
-              value={correo}
-              onChange={(e) => setCorreo(e.target.value)}
-              placeholder="correo@ejemplo.com"
-              className="w-full rounded-lg bg-white border border-gray-300 px-3 py-2 text-black placeholder:text-gray-500"
-            />
-          </div>
-
-          <div>
-            <label className="block mb-1 font-medium text-black">Secuencia interna</label>
-            <input
-              type="text"
-              value={secuenciaRecibo}
-              readOnly
-              className="w-full rounded-lg bg-gray-100 border border-gray-300 px-3 py-2 text-black cursor-not-allowed"
-            />
+            <div>
+              <label className="block mb-1 font-medium text-black">Secuencia interna</label>
+              <input
+                type="text"
+                value={secuenciaRecibo}
+                readOnly
+                className="w-full max-w-[145px] rounded-lg bg-gray-100 border border-gray-300 px-3 py-2 text-black cursor-not-allowed"
+              />
+            </div>
           </div>
         </div>
 
@@ -353,7 +358,7 @@ export default function RecibosTab({ irACrearCliente }: RecibosTabProps) {
 
               <div className="mt-4 rounded-xl border border-gray-300 bg-gray-50 p-4">
                 <div className="flex justify-between text-black">
-                  <span>Total recibido:</span>
+                  <span className="font-bold">Total recibido:</span>
                   <strong>{moneda(total)}</strong>
                 </div>
               </div>

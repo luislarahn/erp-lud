@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import FacturacionTab from '../../components/clientes/FacturacionTab'
+import CotizacionesTab from '../../components/clientes/CotizacionesTab'
+import ProformaTab from '../../components/clientes/ProformaTab'
 import RecibosTab from '../../components/clientes/RecibosTab'
 import NotasCreditoTab from '../../components/clientes/NotasCreditoTab'
 import ClientesTab from '../../components/clientes/ClientesTab'
@@ -13,6 +15,8 @@ import ReporteProductos from '../../components/clientes/inventario/ReporteProduc
 
 type PestanaActiva =
   | 'facturacion'
+  | 'cotizaciones'
+  | 'proforma'
   | 'recibos'
   | 'notasCredito'
   | 'productos'
@@ -73,6 +77,7 @@ export default function ClientesPage() {
 
   return (
     <div
+      className="erp-clientes-page"
       style={{
         minHeight: '100vh',
         backgroundColor: '#F2F4F7',
@@ -80,6 +85,42 @@ export default function ClientesPage() {
         color: '#1F2933',
       }}
     >
+      <style>{`
+        .erp-clientes-page label {
+          display: block !important;
+          margin-bottom: 6px !important;
+          color: #3F4A56 !important;
+          font-weight: 600 !important;
+          font-size: 13px !important;
+          line-height: 1.3 !important;
+        }
+
+        .erp-clientes-page input,
+        .erp-clientes-page select,
+        .erp-clientes-page textarea {
+          font-size: 13px !important;
+          color: #1F2933 !important;
+        }
+
+        .erp-clientes-page h2 {
+          margin-top: 0 !important;
+          margin-bottom: 14px !important;
+          color: #1F2933 !important;
+          font-weight: bold !important;
+          font-size: 18px !important;
+          line-height: 1.3 !important;
+        }
+
+        .erp-clientes-page table th {
+          font-size: 12px !important;
+          font-weight: 700 !important;
+        }
+
+        .erp-clientes-page table td {
+          font-size: 12px !important;
+        }
+      `}</style>
+
       <header
         style={{
           backgroundColor: '#FFFFFF',
@@ -335,6 +376,22 @@ export default function ClientesPage() {
 
           <button
             type="button"
+            onClick={() => setPestanaActiva('cotizaciones')}
+            style={estiloPestana(pestanaActiva === 'cotizaciones')}
+          >
+            Cotizaciones
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPestanaActiva('proforma')}
+            style={estiloPestana(pestanaActiva === 'proforma')}
+          >
+            Proformas
+          </button>
+
+          <button
+            type="button"
             onClick={() => setPestanaActiva('recibos')}
             style={estiloPestana(pestanaActiva === 'recibos')}
           >
@@ -394,6 +451,15 @@ export default function ClientesPage() {
           {pestanaActiva === 'facturacion' && (
             <FacturacionTab irACrearCliente={() => setPestanaActiva('clientes')} />
           )}
+
+          {pestanaActiva === 'cotizaciones' && (
+            <CotizacionesTab irACrearCliente={() => setPestanaActiva('clientes')} />
+          )}
+
+          {pestanaActiva === 'proforma' && (
+            <ProformaTab irACrearCliente={() => setPestanaActiva('clientes')} />
+          )}
+
           {pestanaActiva === 'recibos' && (
             <RecibosTab irACrearCliente={() => setPestanaActiva('clientes')} />
           )}

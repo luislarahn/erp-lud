@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import * as XLSX from 'xlsx'
+import { estiloPestanaEstandar } from '../styles/erpStyles'
 
 type PestanaActiva = 'registros' | 'operaciones' | 'reportes'
 type VistaProductos = 'kanban' | 'lista'
@@ -887,21 +888,7 @@ export default function InventarioPage() {
 
 
   function estiloPestana(activa: boolean) {
-    return {
-      padding: '14px 22px',
-      cursor: 'pointer',
-      backgroundColor: activa ? '#005099' : '#FFFFFF',
-      color: activa ? '#FFFFFF' : '#3F4A56',
-      border: `1px solid ${activa ? '#005099' : '#D8DEE6'}`,
-      borderRadius: '0',
-      fontWeight: 'bold' as const,
-      marginRight: '0',
-      boxShadow: activa
-        ? '0 8px 18px rgba(15,118,110,0.18)'
-        : '0 2px 6px rgba(0,0,0,0.03)',
-      fontSize: '13px',
-      minWidth: '130px',
-    }
+    return estiloPestanaEstandar(activa)
   }
 
   function estiloVista(activa: boolean) {
@@ -1237,7 +1224,7 @@ export default function InventarioPage() {
           <span style={{ color: '#7A828A' }}>Inventario</span>
         </nav>
 
-        <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#FFFFFF', border: '1px solid #D8DEE6', borderRadius: '8px', overflow: 'hidden', marginBottom: '14px', boxShadow: '0 3px 10px rgba(15,23,42,0.04)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#FFFFFF', border: '1px solid #D8DEE6', borderRadius: '8px', overflowX: 'auto', overflowY: 'hidden', marginBottom: '14px', boxShadow: '0 3px 10px rgba(15,23,42,0.04)' }}>
           <button type="button" onClick={() => setPestanaActiva('registros')} style={estiloPestana(pestanaActiva === 'registros')}>Registros</button>
           <button type="button" onClick={() => setPestanaActiva('operaciones')} style={estiloPestana(pestanaActiva === 'operaciones')}>Operaciones</button>
           <button type="button" onClick={() => setPestanaActiva('reportes')} style={estiloPestana(pestanaActiva === 'reportes')}>Reportes</button>
